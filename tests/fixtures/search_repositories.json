@@ -1,0 +1,42 @@
+{
+  "total_count": 2,
+  "incomplete_results": false,
+  "items": [
+    {
+      "id": 101,
+      "full_name": "acme/ragkit",
+      "html_url": "https://github.com/acme/ragkit",
+      "description": "A retrieval augmented generation toolkit",
+      "language": "Python",
+      "topics": ["rag", "llm"],
+      "created_at": "2025-01-01T00:00:00Z",
+      "pushed_at": "2026-11-20T00:00:00Z",
+      "updated_at": "2026-11-21T00:00:00Z",
+      "archived": false,
+      "fork": false,
+      "stargazers_count": 1234,
+      "forks_count": 56,
+      "license": {"spdx_id": "MIT", "name": "MIT License"},
+      "homepage": "https://ragkit.example",
+      "default_branch": "main"
+    },
+    {
+      "id": 102,
+      "full_name": "acme/ragflow",
+      "html_url": "https://github.com/acme/ragflow",
+      "description": null,
+      "language": "TypeScript",
+      "topics": ["rag"],
+      "created_at": "2024-06-01T00:00:00Z",
+      "pushed_at": "2026-11-01T00:00:00Z",
+      "updated_at": "2026-11-02T00:00:00Z",
+      "archived": true,
+      "fork": false,
+      "stargazers_count": 42,
+      "forks_count": 3,
+      "license": null,
+      "homepage": null,
+      "default_branch": null
+    }
+  ]
+}

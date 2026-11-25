@@ -1,0 +1,170 @@
+{
+  "rag": [
+    {
+      "query": "topic:rag language:Python",
+      "total_count": 43094
+    },
+    {
+      "query": "\"retrieval augmented generation\" language:Python",
+      "total_count": 28545
+    }
+  ],
+  "llm": [
+    {
+      "query": "topic:llm language:Python",
+      "total_count": 98375
+    },
+    {
+      "query": "\"large language model\" language:Python",
+      "total_count": 18912
+    },
+    {
+      "query": "\"llm inference\" language:Python",
+      "total_count": 5226
+    }
+  ],
+  "db": [
+    {
+      "query": "topic:database language:Python",
+      "total_count": 8704
+    },
+    {
+      "query": "\"database engine\" language:Python",
+      "total_count": 559
+    },
+    {
+      "query": "\"sql database\" language:Python",
+      "total_count": 6367
+    }
+  ],
+  "api": [
+    {
+      "query": "topic:api language:Python",
+      "total_count": 26121
+    },
+    {
+      "query": "\"api framework\" language:Python",
+      "total_count": 1278
+    },
+    {
+      "query": "\"rest api\" language:Python",
+      "total_count": 91483
+    }
+  ],
+  "agents": [
+    {
+      "query": "topic:ai-agents language:Python",
+      "total_count": 96954
+    },
+    {
+      "query": "\"ai agent\" language:Python",
+      "total_count": 185247
+    },
+    {
+      "query": "\"agentic framework\" language:Python",
+      "total_count": 5665
+    }
+  ],
+  "vector-db": [
+    {
+      "query": "topic:vector-database language:Python",
+      "total_count": 5075
+    },
+    {
+      "query": "\"vector database\" language:Python",
+      "total_count": 6205
+    },
+    {
+      "query": "\"vector search\" language:Python",
+      "total_count": 8789
+    }
+  ],
+  "mcp": [
+    {
+      "query": "topic:mcp language:Python",
+      "total_count": 44363
+    },
+    {
+      "query": "\"model context protocol\" language:Python",
+      "total_count": 10838
+    },
+    {
+      "query": "\"mcp server\" language:Python",
+      "total_count": 69933
+    }
+  ],
+  "inference": [
+    {
+      "query": "topic:inference language:Python",
+      "total_count": 2527
+    },
+    {
+      "query": "\"llm inference\" language:Python",
+      "total_count": 5226
+    },
+    {
+      "query": "\"model serving\" language:Python",
+      "total_count": 1471
+    }
+  ],
+  "embeddings": [
+    {
+      "query": "topic:embeddings language:Python",
+      "total_count": 6474
+    },
+    {
+      "query": "\"embedding model\" language:Python",
+      "total_count": 1836
+    },
+    {
+      "query": "\"vector embeddings\" language:Python",
+      "total_count": 2525
+    }
+  ],
+  "finetuning": [
+    {
+      "query": "topic:fine-tuning language:Python",
+      "total_count": 3732
+    },
+    {
+      "query": "\"fine tuning\" language:Python",
+      "total_count": 29311
+    },
+    {
+      "query": "lora language:Python",
+      "total_count": 20182
+    }
+  ],
+  "self-hosted": [
+    {
+      "query": "topic:self-hosted language:Python",
+      "total_count": 15458
+    },
+    {
+      "query": "\"self hosted\" language:Python",
+      "total_count": 25708
+    },
+    {
+      "query": "self-hosted language:Python",
+      "total_count": 34772
+    }
+  ],
+  "devtools": [
+    {
+      "query": "topic:developer-tools language:Python",
+      "total_count": 23172
+    },
+    {
+      "query": "\"developer tools\" language:Python",
+      "total_count": 1365
+    },
+    {
+      "query": "\"dev tooling\" language:Python",
+      "total_count": 677
+    }
+  ],
+  "_rate_limit": {
+    "remaining": 24,
+    "limit": 30
+  }
+}

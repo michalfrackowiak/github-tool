@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Trends · GitHub-Tool{% endblock %}
+{% block content %}
+<h1>Trend engine</h1>
+<p class="muted">Star gains come from GitHub's star-history endpoint, with your own daily snapshots as fallback.</p>
+
+<form class="toolbar" method="get" action="/trends">
+  <label>Window
+    <select name="window">
+      {% for key, label, days in windows %}<option value="{{ key }}" {% if key == window_key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Sort
+    <select name="sort">
+      {% for value, label in [('most_gained','Most gained'), ('fastest_growth','Fastest relative growth'), ('accelerating','Accelerating'), ('new_rising','New & rising'), ('stars','Total stars'), ('updated','Recently updated')] %}
+      <option value="{{ value }}" {% if value == sort %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Language
+    <select name="language">
+      <option value="">All</option>
+      {% for lang in languages %}<option value="{{ lang }}" {% if lang == language %}selected{% endif %}>{{ lang }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Min stars <input type="number" name="min_stars" value="{{ min_stars }}" min="0" step="10"></label>
+  <label>License <input type="text" name="license" value="{{ license_name }}" placeholder="MIT"></label>
+  <label class="check"><input type="checkbox" name="archived" value="1" {% if include_archived %}checked{% endif %}> archived</label>
+  <label class="check"><input type="checkbox" name="forks" value="1" {% if include_forks %}checked{% endif %}> forks</label>
+  <label>Max fork/star <input type="number" name="max_fork_ratio" value="{{ max_fork_ratio if max_fork_ratio is not none else '' }}" min="0" step="0.1" placeholder="any"></label>
+  <label>Active within (days) <input type="number" name="active_within" value="{{ active_within if active_within is not none else '' }}" min="0" step="1" placeholder="any"></label>
+  <button class="primary" type="submit">Apply</button>
+</form>
+
+{% if error %}<div class="banner error">{{ error }}</div>{% endif %}
+
+<div class="toolbar spread">
+  <div><strong>{{ rows|length }}</strong> repos · gain over {{ window }} day{% if window != 1 %}s{% endif %}</div>
+  <div class="buttons">
+    <a class="button small" href="{{ export_csv }}">CSV</a>
+    <a class="button small" href="{{ export_md }}">Markdown</a>
+    <a class="button small" href="{{ export_json }}">JSON</a>
+  </div>
+</div>
+
+{% if rows %}
+<table>
+  <thead>
+    <tr><th>#</th><th>Repository</th><th>Language</th><th>Stars</th><th>Gain</th><th>Relative</th><th>Accel.</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td class="num">{{ loop.index }}</td>
+      <td><a href="/repo/{{ r.repo.full_name }}"><strong>{{ r.repo.full_name }}</strong></a>
+        <div class="muted small">{{ r.repo.description or "" }}</div></td>
+      <td>{{ r.repo.language or "—" }}</td>
+      <td class="num">{{ "{:,}".format(r.repo.stars) }}</td>
+      <td class="num gain">+{{ "{:,}".format(r.gain(window)) }}</td>
+      <td class="num">{% if r.relative_growth_for(window) is not none %}{{ "%.1f"|format(r.relative_growth_for(window)) }}%{% else %}—{% endif %}</td>
+      <td class="num">{% if r.acceleration_for(window) is not none %}{{ "%.2f"|format(r.acceleration_for(window)) }}{% else %}—{% endif %}</td>
+      <td>{% if r.is_new %}<span class="badge">new</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty">
+  <p>No trend data yet.</p>
+  <p class="muted">Populate the index, then backfill star history:</p>
+  <pre><code>python -m github_tool crawl --profile ai
+python -m github_tool backfill --min-stars 50
+python -m github_tool snapshot</code></pre>
+</div>
+{% endif %}
+{% endblock %}

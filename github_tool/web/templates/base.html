@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}GitHub-Tool{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">GitHub<span>Tool</span></a>
+    <nav>
+      <a href="/" class="{% if nav == 'home' %}active{% endif %}">Discover</a>
+      <a href="/trends" class="{% if nav == 'trends' %}active{% endif %}">Trends</a>
+      <a href="/search?keyword=rag&window=30d" class="{% if nav == 'search' %}active{% endif %}">Search</a>
+      <a href="/saved" class="{% if nav == 'saved' %}active{% endif %}">Saved</a>
+      <a href="/crawl" class="{% if nav == 'crawl' %}active{% endif %}">Crawl</a>
+    </nav>
+    {% if offline %}<span class="badge warn" title="No network calls will be made">offline</span>{% endif %}
+  </header>
+  {% if offline %}
+  <div class="banner">Offline mode: links and local search work, API search and README fetches are disabled.</div>
+  {% endif %}
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <footer>
+    <span>Local-first GitHub discovery. API-first, no bulk scraping.</span>
+    <span>Star windows come from GitHub's star-history endpoint plus your own snapshots.</span>
+  </footer>
+</body>
+</html>

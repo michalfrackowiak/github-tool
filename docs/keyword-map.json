@@ -1,0 +1,316 @@
+{
+  "generated_for": "github-tool",
+  "languages": [
+    "Python",
+    "JavaScript",
+    "TypeScript",
+    "Go",
+    "Rust",
+    "C",
+    "C++",
+    "Java",
+    "PHP",
+    "Ruby",
+    "C#",
+    "Swift",
+    "Kotlin",
+    "Jupyter Notebook",
+    "Zig"
+  ],
+  "windows": [
+    {
+      "key": "today",
+      "label": "Today",
+      "days": 1
+    },
+    {
+      "key": "7d",
+      "label": "Last 7 days",
+      "days": 7
+    },
+    {
+      "key": "30d",
+      "label": "Last 30 days",
+      "days": 30
+    },
+    {
+      "key": "90d",
+      "label": "Last 90 days",
+      "days": 90
+    },
+    {
+      "key": "365d",
+      "label": "Last year",
+      "days": 365
+    }
+  ],
+  "keywords": [
+    {
+      "name": "RAG",
+      "slug": "rag",
+      "topic": "rag",
+      "phrases": [
+        "retrieval augmented generation"
+      ],
+      "description": "Retrieval-augmented generation frameworks and tools",
+      "variants": [
+        "topic:rag",
+        "\"retrieval augmented generation\""
+      ]
+    },
+    {
+      "name": "LLM",
+      "slug": "llm",
+      "topic": "llm",
+      "phrases": [
+        "large language model",
+        "llm inference"
+      ],
+      "description": "Large language model tooling and applications",
+      "variants": [
+        "topic:llm",
+        "\"large language model\"",
+        "\"llm inference\""
+      ]
+    },
+    {
+      "name": "DB",
+      "slug": "db",
+      "topic": "database",
+      "phrases": [
+        "database engine",
+        "sql database"
+      ],
+      "description": "Databases, storage engines, and SQL tooling",
+      "variants": [
+        "topic:database",
+        "\"database engine\"",
+        "\"sql database\""
+      ]
+    },
+    {
+      "name": "API",
+      "slug": "api",
+      "topic": "api",
+      "phrases": [
+        "api framework",
+        "rest api"
+      ],
+      "description": "API frameworks, gateways, and clients",
+      "variants": [
+        "topic:api",
+        "\"api framework\"",
+        "\"rest api\""
+      ]
+    },
+    {
+      "name": "Agents",
+      "slug": "agents",
+      "topic": "ai-agents",
+      "phrases": [
+        "ai agent",
+        "agentic framework"
+      ],
+      "description": "AI agents and agentic orchestration",
+      "variants": [
+        "topic:ai-agents",
+        "\"ai agent\"",
+        "\"agentic framework\""
+      ]
+    },
+    {
+      "name": "Vector DB",
+      "slug": "vector-db",
+      "topic": "vector-database",
+      "phrases": [
+        "vector database",
+        "vector search"
+      ],
+      "description": "Vector databases and similarity search",
+      "variants": [
+        "topic:vector-database",
+        "\"vector database\"",
+        "\"vector search\""
+      ]
+    },
+    {
+      "name": "MCP",
+      "slug": "mcp",
+      "topic": "mcp",
+      "phrases": [
+        "model context protocol",
+        "mcp server"
+      ],
+      "description": "Model Context Protocol servers and clients",
+      "variants": [
+        "topic:mcp",
+        "\"model context protocol\"",
+        "\"mcp server\""
+      ]
+    },
+    {
+      "name": "Inference",
+      "slug": "inference",
+      "topic": "inference",
+      "phrases": [
+        "llm inference",
+        "model serving"
+      ],
+      "description": "Model inference and serving engines",
+      "variants": [
+        "topic:inference",
+        "\"llm inference\"",
+        "\"model serving\""
+      ]
+    },
+    {
+      "name": "Embeddings",
+      "slug": "embeddings",
+      "topic": "embeddings",
+      "phrases": [
+        "embedding model",
+        "vector embeddings"
+      ],
+      "description": "Embedding models and utilities",
+      "variants": [
+        "topic:embeddings",
+        "\"embedding model\"",
+        "\"vector embeddings\""
+      ]
+    },
+    {
+      "name": "Fine-tuning",
+      "slug": "finetuning",
+      "topic": "fine-tuning",
+      "phrases": [
+        "fine tuning",
+        "lora"
+      ],
+      "description": "Fine-tuning and parameter-efficient training",
+      "variants": [
+        "topic:fine-tuning",
+        "\"fine tuning\"",
+        "lora"
+      ]
+    },
+    {
+      "name": "Self-hosted",
+      "slug": "self-hosted",
+      "topic": "self-hosted",
+      "phrases": [
+        "self hosted",
+        "self-hosted"
+      ],
+      "description": "Self-hostable applications and tooling",
+      "variants": [
+        "topic:self-hosted",
+        "\"self hosted\"",
+        "self-hosted"
+      ]
+    },
+    {
+      "name": "Devtools",
+      "slug": "devtools",
+      "topic": "developer-tools",
+      "phrases": [
+        "developer tools",
+        "dev tooling"
+      ],
+      "description": "Developer tooling and productivity",
+      "variants": [
+        "topic:developer-tools",
+        "\"developer tools\"",
+        "\"dev tooling\""
+      ]
+    }
+  ],
+  "profiles": {
+    "default": {
+      "keywords": [
+        "rag",
+        "llm",
+        "db",
+        "api",
+        "agents",
+        "vector-db",
+        "mcp",
+        "inference",
+        "embeddings",
+        "finetuning",
+        "self-hosted",
+        "devtools"
+      ],
+      "languages": [
+        "Python",
+        "TypeScript",
+        "JavaScript",
+        "Go",
+        "Rust",
+        "C",
+        "C++",
+        "Java",
+        "PHP"
+      ],
+      "min_stars": 20,
+      "fetch_readmes": true,
+      "description": "All keywords across the most common languages"
+    },
+    "ai": {
+      "keywords": [
+        "rag",
+        "llm",
+        "agents",
+        "vector-db",
+        "mcp",
+        "inference",
+        "embeddings",
+        "finetuning"
+      ],
+      "languages": [
+        "Python",
+        "TypeScript",
+        "Go",
+        "Rust"
+      ],
+      "min_stars": 20,
+      "fetch_readmes": true,
+      "description": "AI/LLM keywords"
+    },
+    "systems": {
+      "keywords": [
+        "db",
+        "inference",
+        "api"
+      ],
+      "languages": [
+        "C",
+        "C++",
+        "Rust",
+        "Go",
+        "Zig"
+      ],
+      "min_stars": 20,
+      "fetch_readmes": true,
+      "description": "Systems and infrastructure keywords"
+    },
+    "web": {
+      "keywords": [
+        "api",
+        "self-hosted",
+        "devtools",
+        "llm"
+      ],
+      "languages": [
+        "TypeScript",
+        "JavaScript",
+        "Python",
+        "Go",
+        "PHP",
+        "Ruby"
+      ],
+      "min_stars": 20,
+      "fetch_readmes": true,
+      "description": "Web application and tooling keywords"
+    }
+  }
+}

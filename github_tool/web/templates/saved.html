@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Saved searches · GitHub-Tool{% endblock %}
+{% block content %}
+<h1>Saved searches</h1>
+{% if saved_links %}
+<ul class="saved-list">
+  {% for item in saved_links %}
+  <li class="card">
+    <strong>{{ item.name }}</strong>
+    <div class="muted small">{{ item.params }}</div>
+    <div class="actions">
+      <a class="button small" href="{{ item.search_url }}">Search</a>
+      <a class="button small" href="{{ item.trends_url }}">Trends</a>
+      <form method="post" action="/saved/delete">
+        <input type="hidden" name="name" value="{{ item.name }}">
+        <button class="danger small" type="submit">Delete</button>
+      </form>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="muted">No saved searches yet. Run a search and save it from the results page.</p>
+{% endif %}
+{% endblock %}

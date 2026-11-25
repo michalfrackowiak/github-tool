@@ -1,0 +1,11 @@
+{
+  "data_quality": {
+    "status": "unavailable",
+    "reason": "Event-derived ranking is unavailable since 2026-03-01."
+  },
+  "data": {
+    "rows": [
+      {"repo_name": "acme/ragkit", "stars": 1234}
+    ]
+  }
+}

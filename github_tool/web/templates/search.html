@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Search · {{ keyword.name }}{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/">← Discover</a></p>
+<h1>{{ keyword.name }} · {{ window_labels.get(window, window) }} · <span class="muted">{{ 'local index' if source == 'local' else 'GitHub API' }}</span></h1>
+
+<form class="toolbar" method="get" action="/search">
+  <input type="hidden" name="keyword" value="{{ keyword_slug }}">
+  <label>Window
+    <select name="window">
+      {% for key, label, days in windows %}<option value="{{ key }}" {% if key == window %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Language
+    <select name="language">
+      <option value="">All</option>
+      {% for lang in languages %}<option value="{{ lang }}" {% if lang in langs %}selected{% endif %}>{{ lang }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Source
+    <select name="source">
+      <option value="api" {% if source == 'api' %}selected{% endif %}>GitHub API</option>
+      <option value="local" {% if source == 'local' %}selected{% endif %}>Local index</option>
+    </select>
+  </label>
+  <label>Query override <input type="text" name="q" value="{{ q }}" placeholder="optional raw query"></label>
+  <label>Min stars <input type="number" name="min_stars" min="0" value="{{ min_stars }}"></label>
+  <label>License <input type="text" name="license" value="{{ license_name or '' }}" placeholder="e.g. MIT"></label>
+  <label class="checkbox"><input type="checkbox" name="archived" value="1" {% if include_archived %}checked{% endif %}> Include archived</label>
+  <label class="checkbox"><input type="checkbox" name="forks" value="1" {% if include_forks %}checked{% endif %}> Include forks</label>
+  <label class="checkbox"><input type="checkbox" name="in_readme" value="1" {% if in_readme %}checked{% endif %}> Match README text</label>
+  <button type="submit">Search</button>
+</form>
+
+{% if error %}
+<div class="banner error">{{ error }}</div>
+{% endif %}
+
+<div class="toolbar spread">
+  <div>
+    <strong>{{ repos|length }}</strong> shown{% if total %} · <span class="muted">{{ "{:,}".format(total) }} per-language matches reported</span>{% endif %}
+  </div>
+  <div class="buttons">
+    <a class="button small" href="{{ sort_urls.stars }}">Stars</a>
+    <a class="button small" href="{{ sort_urls.forks }}">Forks</a>
+    <a class="button small" href="{{ sort_urls.updated }}">Updated</a>
+    <a class="button small" href="{{ export_url }}">CSV</a>
+    <a class="button small" href="{{ export_json_url }}">JSON</a>
+  </div>
+</div>
+
+{% if repos %}
+<table>
+  <thead>
+    <tr><th>#</th><th>Repository</th><th>Stars</th><th>Forks</th><th>Language</th><th>License</th><th>Updated</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    {% for r in repos %}
+    <tr>
+      <td class="num">{{ loop.index }}</td>
+      <td><a href="/repo/{{ r.full_name }}"><strong>{{ r.full_name }}</strong></a></td>
+      <td class="num">{{ "{:,}".format(r.stars) }}</td>
+      <td class="num">{{ "{:,}".format(r.forks) }}</td>
+      <td>{{ r.language or "—" }}</td>
+      <td>{{ r.license or "—" }}</td>
+      <td class="muted">{{ r.updated_at|shortdate }}</td>
+      <td class="desc">{{ r.description or "" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty">
+  <p>No results yet.</p>
+  {% if source == 'local' %}<p class="muted">Run <code>python -m github_tool crawl --profile ai</code> to populate the index, or switch to GitHub API.</p>{% endif %}
+</div>
+{% endif %}
+
+<section class="panel">
+  <h2>Save this search</h2>
+  <form class="inline" method="post" action="/saved">
+    <input type="hidden" name="keyword" value="{{ keyword_slug }}">
+    <input type="hidden" name="window" value="{{ window }}">
+    <input type="hidden" name="source" value="{{ source }}">
+    <input type="hidden" name="sort" value="{{ sort }}">
+    <input type="hidden" name="language" value="{{ langs|join(',') }}">
+    <input type="hidden" name="q" value="{{ q }}">
+    <input type="hidden" name="min_stars" value="{{ min_stars }}">
+    <input type="hidden" name="license" value="{{ license_name or '' }}">
+    {% if include_archived %}<input type="hidden" name="archived" value="1">{% endif %}
+    {% if include_forks %}<input type="hidden" name="forks" value="1">{% endif %}
+    {% if in_readme %}<input type="hidden" name="in_readme" value="1">{% endif %}
+    <input type="text" name="name" placeholder="e.g. Python RAG this week" required>
+    <button type="submit">Save</button>
+  </form>
+</section>
+{% endblock %}

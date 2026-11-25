@@ -1,0 +1,40 @@
+{
+  "data": {
+    "r0": {
+      "databaseId": 101,
+      "nameWithOwner": "acme/ragkit",
+      "url": "https://github.com/acme/ragkit",
+      "description": "A retrieval augmented generation toolkit",
+      "primaryLanguage": {"name": "Python"},
+      "createdAt": "2025-01-01T00:00:00Z",
+      "pushedAt": "2026-11-20T00:00:00Z",
+      "updatedAt": "2026-11-21T00:00:00Z",
+      "isArchived": false,
+      "isFork": false,
+      "stargazerCount": 1234,
+      "forkCount": 56,
+      "licenseInfo": {"spdxId": "MIT", "name": "MIT License"},
+      "homepageUrl": "https://ragkit.example",
+      "defaultBranchRef": {"name": "main"},
+      "repositoryTopics": {"nodes": [{"topic": {"name": "rag"}}, {"topic": {"name": "llm"}}]}
+    },
+    "r1": {
+      "databaseId": 102,
+      "nameWithOwner": "acme/ragflow",
+      "url": "https://github.com/acme/ragflow",
+      "description": null,
+      "primaryLanguage": {"name": "TypeScript"},
+      "createdAt": "2024-06-01T00:00:00Z",
+      "pushedAt": "2026-11-01T00:00:00Z",
+      "updatedAt": "2026-11-02T00:00:00Z",
+      "isArchived": true,
+      "isFork": false,
+      "stargazerCount": 42,
+      "forkCount": 3,
+      "licenseInfo": null,
+      "homepageUrl": null,
+      "defaultBranchRef": null,
+      "repositoryTopics": {"nodes": []}
+    }
+  }
+}

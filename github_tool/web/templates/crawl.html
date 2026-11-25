@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Crawl status · GitHub-Tool{% endblock %}
+{% block content %}
+<h1>Crawl status</h1>
+{% if latest %}
+<section class="card">
+  <dl class="stats">
+    <div><dt>Run</dt><dd class="mono">{{ latest.id[:12] }}</dd></div>
+    <div><dt>Profile</dt><dd>{{ latest.profile }}</dd></div>
+    <div><dt>Status</dt><dd><span class="badge {{ latest.status }}">{{ latest.status }}</span></dd></div>
+    <div><dt>Started</dt><dd>{{ latest.started_at }}</dd></div>
+    <div><dt>Finished</dt><dd>{{ latest.finished_at or "—" }}</dd></div>
+  </dl>
+  <p>Slices: {% for status, count in slices.items() %}<span class="badge">{{ status }} {{ count }}</span> {% endfor %}</p>
+  {% if latest.error %}<div class="banner error">{{ latest.error }}</div>{% endif %}
+  {% if latest.status != 'completed' %}
+  <p class="hint">Resume from the CLI:</p>
+  <pre><code>python -m github_tool crawl --profile {{ latest.profile }} --resume {{ latest.id }}</code></pre>
+  {% endif %}
+</section>
+{% else %}
+<div class="empty"><p>No crawl has run yet.</p></div>
+{% endif %}
+
+<section class="panel">
+  <h2>Run a crawl</h2>
+  <p>The crawler is a CLI job so it can run unattended and be resumed:</p>
+  <pre><code>python -m github_tool crawl --profile ai
+python -m github_tool crawl --profile default --discovery graphql
+python -m github_tool backfill --min-stars 50
+python -m github_tool snapshot</code></pre>
+</section>
+{% endblock %}

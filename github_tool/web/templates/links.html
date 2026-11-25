@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ keyword }} links · GitHub-Tool{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/">← Discover</a></p>
+<h1>Link-out views · {{ keyword }} · {{ window_labels.get(window, window) }}</h1>
+<p class="muted">These open github.com or a third-party view. No token or crawler is used.</p>
+
+{% for group in groups %}
+<section class="group">
+  <h2>{% if group.language %}{{ group.language }}{% else %}All languages{% endif %}</h2>
+  <div class="grid cards">
+    {% for view in group.views %}
+    <a class="card link-card {% if not view.available %}unavailable{% endif %}" href="{{ view.url }}" target="_blank" rel="noopener noreferrer">
+      <span class="kind">{{ view.kind }}</span>
+      <strong>{{ view.label }}</strong>
+      <span class="muted">{{ view.note }}</span>
+      {% if not view.available %}<span class="badge warn">reported unavailable</span>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+
+<section class="panel">
+  <h2>Go deeper</h2>
+  <div class="actions">
+    <a class="button" href="/search?keyword={{ keyword|urlencode }}&window={{ window|urlencode }}&source=api{% for lang in langs %}{% if lang %}&language={{ lang|urlencode }}{% endif %}{% endfor %}">Search GitHub now</a>
+    <a class="button" href="/search?keyword={{ keyword|urlencode }}&window={{ window|urlencode }}&source=local{% for lang in langs %}{% if lang %}&language={{ lang|urlencode }}{% endif %}{% endfor %}">Search local index</a>
+    <a class="button" href="/trends?window={{ window|urlencode }}">Trend engine</a>
+  </div>
+  <p class="hint">OSS Insight's event-derived ranking reports itself as unavailable since 2026-03-01. The trend engine uses GitHub star history and your own snapshots instead.</p>
+</section>
+{% endblock %}

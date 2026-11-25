@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Discover · GitHub-Tool{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Find what's actually rising on GitHub.</h1>
+  <p>Rank by total stars or by stars gained in the last day, week, month, quarter, or year — then keep an offline index.</p>
+</section>
+
+<form class="panel discover" method="get" action="/links">
+  <fieldset>
+    <legend>Keyword</legend>
+    <div class="chips">
+      {% for k in keywords %}
+      <label class="chip">
+        <input type="radio" name="keyword" value="{{ k.slug }}" {% if k.slug == keyword %}checked{% endif %}>
+        <span>{{ k.name }}</span>
+      </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Languages</legend>
+    <div class="checks">
+      {% for lang in languages %}
+      <label class="check">
+        <input type="checkbox" name="language" value="{{ lang }}" {% if lang == language %}checked{% endif %}>
+        {{ lang }}
+      </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Time window</legend>
+    <select name="window">
+      {% for key, label, days in windows %}
+      <option value="{{ key }}" {% if key == window %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </fieldset>
+
+  <div class="actions">
+    <button class="primary" type="submit" formaction="/links">Open link-out views</button>
+    <button type="submit" formaction="/search" name="source" value="api">Search GitHub now</button>
+    <button type="submit" formaction="/search" name="source" value="local">Search local index</button>
+  </div>
+  <p class="hint">Link-out views need no token. API search uses your token and backoff. Local search uses the SQLite/FTS index.</p>
+</form>
+
+<section class="grid two">
+  <div class="card">
+    <h2>Local index</h2>
+    <dl class="stats">
+      <div><dt>Repos</dt><dd>{{ "{:,}".format(stats.repos) }}</dd></div>
+      <div><dt>Keywords</dt><dd>{{ stats.keywords }}</dd></div>
+      <div><dt>Last crawl</dt><dd>{% if stats.latest_run %}{{ stats.latest_run.status }}{% else %}never{% endif %}</dd></div>
+    </dl>
+    <p class="hint">Seed it with <code>python -m github_tool crawl --profile ai</code>, then <code>backfill</code> and <code>snapshot</code>.</p>
+  </div>
+  <div class="card">
+    <h2>Saved searches</h2>
+    {% if saved %}
+    <ul class="plain">
+      {% for item in saved[:6] %}<li><a href="/search?keyword={{ item.params.get('keyword', 'rag')|urlencode }}&window={{ item.params.get('window', '30d')|urlencode }}">{{ item.name }}</a></li>{% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">Save a search from the results page to keep a shortcut here.</p>
+    {% endif %}
+    <p><a href="/trends">Jump to trending →</a></p>
+  </div>
+</section>
+{% endblock %}
