@@ -87,7 +87,7 @@
 - [x] Store each extracted item with its source line and a confidence flag. — 190/190 live command lines verified against their README line.
 - [x] Re-run extraction only when the README hash changes. — Requires both matching hash and `extracted_at`, so crawler-written hashes do not suppress first extraction.
 - [x] Semantically review a sample of extracted commands. — All 190 commands across 47 repos were reviewed with `scripts/audit_extraction.py`; 6 template commands were filtered and 4 multi-line commands joined.
-- [ ] Independent human spot-check of ~50 repos. — **Optional human action** for business-critical use; the agent review is recorded in `docs/extraction-validation.md`.
+- [ ] Independent human spot-check of ~50 repos. — **Optional human action** for business-critical use; the agent review is recorded in `docs/extraction-validation.md`. A ready-to-tick review packet (46 repos / 184 commands) is generated at [`docs/extraction-spotcheck.md`](docs/extraction-spotcheck.md) via `scripts/make_spotcheck.py`; only the human sign-off remains.
 
 **Done when:** a hand-check of ~50 repos looks trustworthy. — Automated line check 190/190 and recorded agent semantic review; see `docs/extraction-validation.md`.
 

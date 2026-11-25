@@ -137,7 +137,7 @@ github_tool/
   cli.py logging.py __main__.py
   web/                                            # FastAPI app, Jinja2 templates, CSS
 tests/                                            # pytest suite + recorded API fixtures
-scripts/                                          # validate_phase0.py, audit_extraction.py
+scripts/                                          # validate_phase0.py, audit_extraction.py, make_spotcheck.py
 docs/                                             # validation reports, rate limits, generated keyword map
 context.md roadmap.md pyproject.toml
 ```
