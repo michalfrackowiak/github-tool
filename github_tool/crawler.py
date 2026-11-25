@@ -198,7 +198,9 @@ class Crawler:
             if fetch_readmes is None:
                 fetch_readmes = crawl_profile.fetch_readmes
 
-            planned = self.plan_profile(profile, in_readme=in_readme)
+            planned = self.plan_profile(
+                profile, in_readme=in_readme, include_forks=include_forks
+            )
             run_id = self.db.start_run(profile)
             self.db.add_slices(run_id, [sl.as_dict() for sl in planned])
             profile_name = profile

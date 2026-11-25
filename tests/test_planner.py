@@ -35,6 +35,24 @@ def test_in_readme_qualifier_is_carried_into_every_slice():
     assert all("in:readme" in sl.query for sl in split)
 
 
+def test_include_forks_qualifier_is_carried_into_every_slice():
+    assert compose_query("rag", "Python", (0, None), include_forks=True) == (
+        "rag fork:true language:Python"
+    )
+    slices = plan_slices("rag", None, lambda query: 5, include_forks=True)
+    assert len(slices) == 1
+    assert "fork:true" in slices[0].query
+
+    def count_fn(query: str) -> int:
+        if "stars:" not in query or "stars:>=" in query:
+            return 50_000
+        return 100
+
+    split = plan_slices("rag", None, count_fn, include_forks=True)
+    assert len(split) > 1
+    assert all("fork:true" in sl.query for sl in split)
+
+
 def test_under_cap_base_query_returns_one_slice_without_star_qualifier():
     slices = plan_slices("rag", "Python", lambda query: 5, today=date(2026, 11, 24))
     assert len(slices) == 1

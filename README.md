@@ -2,7 +2,7 @@
 
 Discover GitHub repositories by keyword and rank them by popularity **and recent star growth**. GitHub does not natively report "stars gained in the last N days" for a keyword, so GitHub-Tool combines instant link-out views with a local index and its own star-history data.
 
-- **Phases 0–9 implemented** — link-out MVP, on-demand API search, resumable crawler, trend engine, web UI/export, extraction, hardening, README-search parity, and activity/inflation sanity filters are in place. Phase 0 evidence is in [`docs/phase0-validation.md`](docs/phase0-validation.md); live end-to-end checks are in [`docs/live-validation.md`](docs/live-validation.md).
+- **Phases 0–10 implemented** — link-out MVP, on-demand API search, resumable crawler, trend engine, web UI/export, extraction, hardening, README-search parity, activity/inflation sanity filters, and fork-inclusive search are in place. Phase 0 evidence is in [`docs/phase0-validation.md`](docs/phase0-validation.md); live end-to-end checks are in [`docs/live-validation.md`](docs/live-validation.md).
 - **Known caveats** — OSS Insight's trend ranking is unavailable (since 2026-03-01; GitHub Trending is used as the live hint source instead); a read-only token still needs to be created by the operator; README extraction is line-verified and semantically reviewed, but an independent human spot-check is still recommended for business-critical use. See [`docs/extraction-validation.md`](docs/extraction-validation.md). Review outcomes are in [`docs/review-fixes.md`](docs/review-fixes.md).
 
 ## Quickstart (Windows / PowerShell)
@@ -52,9 +52,9 @@ The console entry point is `github-tool` (also `python -m github_tool`). All com
 |---|---|---|
 | `github-tool keywords` | Print the keyword map; `--json PATH` writes it (used to regenerate `docs/keyword-map.json`). No token or DB needed. | 1 |
 | `github-tool links` | Print GitHub search / Trending / topic / OSS Insight URLs for a keyword, language, and window. No token or DB needed. | 1 |
-| `github-tool search` | On-demand REST search, sorted by stars/forks/updated, with backoff and ETag cache; `--local` uses FTS, `--in-readme` matches README text. | 2 |
+| `github-tool search` | On-demand REST search, sorted by stars/forks/updated, with backoff and ETag cache; `--local` uses FTS, `--in-readme` matches README text, `--include-forks` adds `fork:true`. | 2 |
 | `github-tool init-db` | Create or upgrade the SQLite schema and FTS5 index. | 3 |
-| `github-tool crawl` | Run a resumable crawl profile (keyword set × languages), slicing queries to stay under 1,000 results; `--in-readme` includes README text. | 3 |
+| `github-tool crawl` | Run a resumable crawl profile (keyword set × languages), slicing queries to stay under 1,000 results; `--in-readme` includes README text and `--include-forks` includes forks. | 3 |
 | `github-tool trends` | Compute 1/7/30/90/365-day star gains and trend sorts from the local index; `--max-fork-ratio` filters inflated star counts and `--active-within N` filters stale repos. | 4 |
 | `github-tool backfill` | Backfill star history for candidate repos, skipping archived repos, forks, and tiny repos. | 4 |
 | `github-tool snapshot` | Take daily star/fork snapshots, batched via GraphQL. | 4 |
@@ -69,7 +69,7 @@ Example usage:
 
 ```powershell
 python -m github_tool links rag --language Python --window 30d
-python -m github_tool search DB --language Rust --sort stars --limit 50 --in-readme
+python -m github_tool search DB --language Rust --sort stars --limit 50 --in-readme --include-forks
 python -m github_tool crawl --profile ai
 python -m github_tool backfill --min-stars 50
 python -m github_tool snapshot
@@ -119,7 +119,7 @@ Details: [`docs/rate-limits.md`](docs/rate-limits.md) · validation evidence: [`
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-**196 tests pass, 0 skipped/xfailed.** The suite covers links, keywords, schema/FTS, the HTTP client with recorded fixtures and `MockTransport` (retry/backoff, ETag/304, README, star history, GraphQL, Trending HTML), the query planner, crawler resume/dedupe, trend math and sorts, extraction (heuristics + strict LLM JSON + manifest hints), export, CLI, scheduler, logging redaction, and the web UI.
+**199 tests pass, 0 skipped/xfailed.** The suite covers links, keywords, schema/FTS, the HTTP client with recorded fixtures and `MockTransport` (retry/backoff, ETag/304, README, star history, GraphQL, Trending HTML), the query planner, crawler resume/dedupe, trend math and sorts, extraction (heuristics + strict LLM JSON + manifest hints), export, CLI, scheduler, logging redaction, and the web UI.
 
 Offline validation script (always safe):
 

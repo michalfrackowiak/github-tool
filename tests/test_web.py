@@ -234,6 +234,18 @@ def test_web_search_in_readme_reaches_api_query(web):
     assert "Match README text" in response.text
 
 
+def test_web_search_include_forks_reaches_api_query(web):
+    api = FakeClient()
+    client = web(client=api)
+
+    response = client.get("/search?keyword=rag&source=api&forks=1")
+
+    assert response.status_code == 200
+    assert api.search_calls
+    assert all("fork:true" in query for query, _ in api.search_calls)
+    assert "forks=1" in response.text
+
+
 def test_offline_local_search_never_calls_client(web, db, make_repo):
     db.upsert_repo(make_repo(207, "acme/offline", language="Python"))
     client = web(offline=True, client=ExplodingClient())

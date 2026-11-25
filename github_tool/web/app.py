@@ -298,6 +298,8 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
                                 query = f"{query} {qualifier}"
                         if in_readme and "in:readme" not in query:
                             query = f"{query} in:readme"
+                        if include_forks and "fork:" not in query:
+                            query = f"{query} fork:true"
                         result = client.search_repositories(query, sort=sort, order="desc", per_page=min(limit, 100))
                         total += result.total_count
                         for repo in result.items:

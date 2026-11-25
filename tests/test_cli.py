@@ -119,6 +119,38 @@ def test_search_in_readme_flag_reaches_the_query(tmp_path, monkeypatch, capsys):
     assert "in:readme" in client.query
 
 
+def test_search_include_forks_flag_reaches_the_query(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from github_tool import cli
+
+    class Client:
+        query = None
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def search_repositories(self, query, **kwargs):
+            self.query = query
+            return SimpleNamespace(
+                items=[], total_count=0,
+                rate_limit=SimpleNamespace(remaining=None, limit=None),
+            )
+
+    client = Client()
+    monkeypatch.setattr(cli, "_client", lambda settings, database: client)
+
+    code = cli.main(
+        ["search", "rag", "--db", str(tmp_path / "search.db"), "--include-forks", "--limit", "1"]
+    )
+
+    assert code == 0
+    assert "fork:true" in client.query
+
+
 def test_unknown_keyword_returns_error(capsys):
     code = main(["links", "not-a-keyword"])
     captured = capsys.readouterr()

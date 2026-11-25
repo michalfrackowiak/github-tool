@@ -157,6 +157,8 @@ def cmd_search(args: argparse.Namespace) -> int:
         query = f"{query} {qualifier}"
     if getattr(args, "in_readme", False) and "in:readme" not in query:
         query = f"{query} in:readme"
+    if getattr(args, "include_forks", False) and "fork:" not in query:
+        query = f"{query} fork:true"
     if args.local:
         rows = db.search_fts(args.query or keyword.name, limit=args.limit)
         if not rows:
@@ -203,7 +205,11 @@ def cmd_crawl(args: argparse.Namespace) -> int:
     with _client(settings, db) as client:
         crawler = Crawler(settings, db, client)
         if args.plan_only:
-            slices = crawler.plan_profile(args.profile, in_readme=args.in_readme)
+            slices = crawler.plan_profile(
+                args.profile,
+                in_readme=args.in_readme,
+                include_forks=args.include_forks,
+            )
             for sl in slices:
                 flag = " [overflow]" if sl.overflow else ""
                 print(f"{sl.estimated_count or 0:>5}  {sl.query}{flag}")
@@ -216,6 +222,7 @@ def cmd_crawl(args: argparse.Namespace) -> int:
             discovery=args.discovery,
             max_slices=args.max_slices,
             in_readme=args.in_readme,
+            include_forks=args.include_forks,
         )
     print(json.dumps(summary.as_dict(), indent=2))
     return 1 if summary.status == "failed" else 0
@@ -500,6 +507,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--save", action="store_true", help="Store results in the local index")
     p.add_argument("--local", action="store_true", help="Search the local FTS index instead of the API")
     p.add_argument("--in-readme", action="store_true", help="Also match keywords inside README text")
+    p.add_argument("--include-forks", action="store_true", help="Include forks in API results")
     p.set_defaults(func=cmd_search)
 
     p = sub.add_parser("crawl", parents=[common], help="Run or resume a crawl profile")
@@ -510,6 +518,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--max-slices", type=int, help="Pause after this many slices (resume later)")
     p.add_argument("--plan-only", action="store_true", help="Print the planned slices without crawling")
     p.add_argument("--in-readme", action="store_true", help="Match keywords inside README text while discovering")
+    p.add_argument("--include-forks", action="store_true", help="Include forks while discovering")
     p.set_defaults(func=cmd_crawl)
 
     p = sub.add_parser("trends", parents=[common], help="Show trending repos from the local index")
