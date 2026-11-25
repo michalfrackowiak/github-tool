@@ -304,11 +304,15 @@ def plan_keyword(
     today: date | None = None,
     max_count_calls: int | None = None,
     memo: dict[str, int] | None = None,
+    in_readme: bool = False,
+    include_forks: bool = False,
 ) -> list[QuerySlice]:
     """Plan every variant of a keyword and merge by query.
 
     Generic keywords ("DB", "API") get a topic query plus phrase queries, so the
-    crawler sees more than one slice family per keyword.
+    crawler sees more than one slice family per keyword. ``in_readme`` and
+    ``include_forks`` are forwarded to every generated slice, matching
+    ``plan_slices`` and ``Crawler.plan_profile``.
     """
     from .keywords import get_keyword
 
@@ -327,6 +331,8 @@ def plan_keyword(
             today=today,
             max_count_calls=max_count_calls,
             memo=memo,
+            in_readme=in_readme,
+            include_forks=include_forks,
         ):
             if sl.query in seen:
                 continue

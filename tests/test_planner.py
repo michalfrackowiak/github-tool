@@ -136,6 +136,21 @@ def test_plan_keyword_runs_all_variants_and_dedupes():
     assert "topic:dup-topic" in queries[0]
 
 
+def test_plan_keyword_forwards_in_readme_and_forks():
+    slices = plan_keyword(
+        "rag",
+        "Python",
+        lambda query: 5,
+        today=date(2026, 11, 24),
+        in_readme=True,
+        include_forks=True,
+    )
+    assert slices
+    for sl in slices:
+        assert "in:readme" in sl.query
+        assert "fork:true" in sl.query
+
+
 def test_compose_query_formats_stars_and_dates():
     assert compose_query("rag", None, (0, None)) == "rag"
     assert compose_query("rag", "Python", (10, 49)) == "rag language:Python stars:10..49"

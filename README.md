@@ -119,7 +119,7 @@ Details: [`docs/rate-limits.md`](docs/rate-limits.md) · validation evidence: [`
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-**199 tests pass, 0 skipped/xfailed.** The suite covers links, keywords, schema/FTS, the HTTP client with recorded fixtures and `MockTransport` (retry/backoff, ETag/304, README, star history, GraphQL, Trending HTML), the query planner, crawler resume/dedupe, trend math and sorts, extraction (heuristics + strict LLM JSON + manifest hints), export, CLI, scheduler, logging redaction, and the web UI.
+**200 tests pass, 0 skipped/xfailed.** The suite covers links, keywords, schema/FTS, the HTTP client with recorded fixtures and `MockTransport` (retry/backoff, ETag/304, README, star history, GraphQL, Trending HTML), the query planner, crawler resume/dedupe, trend math and sorts, extraction (heuristics + strict LLM JSON + manifest hints), export, CLI, scheduler, logging redaction, and the web UI.
 
 Offline validation script (always safe):
 

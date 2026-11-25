@@ -1,6 +1,6 @@
 # Reviewer findings and fixes
 
-Seven independent reviewer passes were run near the end of the build. All findings below were addressed; each has a regression test in `tests/test_regressions.py` (or the relevant module test) unless the existing suite already covered it.
+Seven independent reviewer passes were run near the end of the build, followed by an eighth self-review pass (the reviewer subagents hit their usage limit, so the maintainer reviewed directly). All findings below were addressed; each has a regression test in `tests/test_regressions.py` (or the relevant module test) unless the existing suite already covered it.
 
 ## Crawler / planner / trends / extraction
 
@@ -110,6 +110,14 @@ No other material defects in the final state; the reviewer explicitly cleared th
 | CLI `--max-fork-ratio nan` passed validation (`nan < 0` is false) and silently emptied results, while the web parser mapped `nan` to `None` and ignored it | `get_trending()` now rejects any non-finite ratio with a clear error; CLI and web behave consistently |
 
 The reviewer explicitly cleared `planner.py` slice propagation, `crawler.py` propagation/resume, `trends.py` `pushed_at` cutoff and UTC parsing, `/export.json` serialization, and the new test coverage.
+
+## Eighth pass (maintainer self-review, Phase 10 follow-up)
+
+| Finding | Fix |
+|---|---|
+| `plan_keyword()` was the one planner entry point that did not accept or forward `in_readme`/`include_forks`, so any caller using it (it is part of the module's public surface and is unit-tested) silently dropped the `in:readme` / `fork:true` qualifiers that `plan_slices()`, `compose_query()`, and `Crawler.plan_profile()` all propagate | `plan_keyword()` now takes `in_readme`/`include_forks` and forwards them to every generated slice; a regression test asserts both qualifiers appear in all slices |
+
+Cross-module re-check confirmed the CLI, web, crawler, and planner agree on `in_readme`, `include_forks`, `fork:true`, and `in:readme`; templates have no `|safe`/autoescape-off and the sparkline escapes its label; `Settings` redacts the token and LLM key; CSV export neutralizes formula injection. No other material defects found; suite is 200 tests, 0 skipped/xfailed.
 
 ## Remaining operator actions (not code defects)
 
