@@ -3,7 +3,7 @@
 Discover GitHub repositories by keyword and rank them by popularity **and recent star growth**. GitHub does not natively report "stars gained in the last N days" for a keyword, so GitHub-Tool combines instant link-out views with a local index and its own star-history data.
 
 - **Phases 0–10 implemented** — link-out MVP, on-demand API search, resumable crawler, trend engine, web UI/export, extraction, hardening, README-search parity, activity/inflation sanity filters, and fork-inclusive search are in place. Phase 0 evidence is in [`docs/phase0-validation.md`](docs/phase0-validation.md); live end-to-end checks are in [`docs/live-validation.md`](docs/live-validation.md).
-- **Known caveats** — OSS Insight's trend ranking is unavailable (since 2026-03-01; GitHub Trending is used as the live hint source instead); a read-only token still needs to be created by the operator; README extraction is line-verified and semantically reviewed, but an independent human spot-check is still recommended for business-critical use. See [`docs/extraction-validation.md`](docs/extraction-validation.md). Review outcomes are in [`docs/review-fixes.md`](docs/review-fixes.md).
+- **Known caveats** — OSS Insight's trend ranking is unavailable (since 2026-03-01; GitHub Trending is used as the live hint source instead); authenticated validation currently uses an existing token, and a fine-grained public read-only token is recommended for scheduled use; README extraction is line-verified and semantically reviewed, but an independent human spot-check is still recommended for business-critical use. See [`docs/extraction-validation.md`](docs/extraction-validation.md). Review outcomes are in [`docs/review-fixes.md`](docs/review-fixes.md).
 
 ## Quickstart (Windows / PowerShell)
 
