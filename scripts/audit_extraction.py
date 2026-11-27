@@ -26,25 +26,9 @@ _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 
-from make_spotcheck import fetch_repos, write_packet  # noqa: E402
+from make_spotcheck import CAUTION_WORDS, fetch_repos, write_packet  # noqa: E402
 
 DEFAULT_DB = Path(os.environ.get("GITHUB_TOOL_DB") or Path.home() / ".github-tool" / "github-tool.db")
-
-# Words in the preceding lines that suggest a command may be illustrative
-# rather than a real instruction for this repository.
-_CAUTION_WORDS = (
-    "for example",
-    "e.g.",
-    "instead of",
-    "not recommended",
-    "deprecated",
-    "do not",
-    "don't",
-    "alternative",
-    "if you prefer",
-    "uninstall",
-)
-
 
 def main() -> int:
     if hasattr(sys.stdout, "reconfigure"):  # Windows consoles default to cp1250
@@ -88,7 +72,7 @@ def main() -> int:
             caution = [
                 item["text"]
                 for item in context
-                if any(word in item["text"].lower() for word in _CAUTION_WORDS)
+                if any(word in item["text"].lower() for word in CAUTION_WORDS)
             ]
             if caution:
                 flagged += 1

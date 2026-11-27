@@ -121,7 +121,7 @@ Details: [`docs/rate-limits.md`](docs/rate-limits.md) · validation evidence: [`
 
 **208 tests pass, 0 skipped/xfailed.** The suite covers links, keywords, schema/FTS, the HTTP client with recorded fixtures and `MockTransport` (retry/backoff, ETag/304, README, star history, GraphQL, Trending HTML), the query planner, crawler resume/dedupe, trend math and sorts, extraction (heuristics + strict LLM JSON + manifest hints), export, CLI, scheduler, logging redaction, the web UI, and both extraction-audit scripts.
 
-Install the development tooling with `python -m pip install -r requirements.txt`. GitHub Actions (`.github/workflows/ci.yml`) runs `ruff check .` and the test suite with coverage on pushes and pull requests targeting `main`.
+Install the development tooling with `python -m pip install -e ".[dev]"` (or `python -m pip install -r requirements.txt`). GitHub Actions (`.github/workflows/ci.yml`) runs `ruff check .` and the test suite with coverage on pushes and pull requests targeting `main`.
 
 The two audit tools share one Markdown renderer, so these produce the same human spot-check packet:
 

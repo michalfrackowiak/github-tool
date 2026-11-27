@@ -25,7 +25,7 @@ import sys
 
 DEFAULT_DB = Path(os.environ.get("GITHUB_TOOL_DB") or Path.home() / ".github-tool" / "github-tool.db")
 
-_CAUTION_WORDS = (
+CAUTION_WORDS = (
     "for example",
     "e.g.",
     "instead of",
@@ -101,7 +101,7 @@ def build_packet(conn: sqlite3.Connection, repos: list[sqlite3.Row], db_path: Pa
         for command in commands:
             line_no = int(command["source_line"])
             context = _context(lines, line_no)
-            caution = [text for _, text in context if any(w in text.lower() for w in _CAUTION_WORDS)]
+            caution = [text for _, text in context if any(w in text.lower() for w in CAUTION_WORDS)]
             if caution:
                 total_flagged += 1
             marker = " **⚠ caution**" if caution else ""
@@ -118,7 +118,7 @@ def build_packet(conn: sqlite3.Connection, repos: list[sqlite3.Row], db_path: Pa
     header = [
         "# Extraction spot-check (human review)",
         "",
-        f"_Generated {date.today().isoformat()} from `{db_path}`._",
+        f"_Generated {date.today().isoformat()} from `{db_path.name}`._",
         "",
         f"Sampled **{len(repos)} repositories** and **{total_commands} install commands**; "
         f"**{total_flagged}** commands sit near caution words (for example / e.g. / alternative / "

@@ -1,6 +1,6 @@
 # Extraction spot-check (human review)
 
-_Generated 2026-11-25 from `C:\Users\asusj\.github-tool\github-tool.db`._
+_Generated 2026-11-27 from `github-tool.db`._
 
 Sampled **50 repositories** and **158 install commands**; **4** commands sit near caution words (for example / e.g. / alternative / deprecated). This is the optional independent human spot-check from the roadmap (Phase 6). The automated source-line check and an agent semantic review already passed; this packet is for a person to confirm semantic trustworthiness on a sample.
 
