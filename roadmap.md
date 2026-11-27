@@ -1,6 +1,6 @@
 # GitHub-Tool — Build Roadmap
 
-**Status:** Phases 0–10 implemented and validated. The read-only token is in place and authenticated; switching it to a fine-grained least-privilege token is an operator recommendation. An independent human spot-check of extraction is optional — an agent semantic review covered all 190 extracted commands. Every other checkbox below is complete. Seven independent reviewer passes plus a maintainer self-review are recorded in `docs/review-fixes.md`; 208 tests pass with no skips/xfails. **Approach:** link-out views for instant answers first (Phases 0–1), then a local index and crawler for offline use and trend windows (Phases 2–7). Full background, architecture, and constraints: see `context.md`.
+**Status:** Phases 0–10 implemented and validated; Phase 11 is planned below and not yet started. The read-only token is in place and authenticated; switching it to a fine-grained least-privilege token is an operator recommendation. An independent human spot-check of extraction is optional — an agent semantic review covered all 190 extracted commands. All non-operator/non-human checkboxes in Phases 0–10 are complete. Seven independent reviewer passes plus a maintainer self-review are recorded in `docs/review-fixes.md`; 208 tests pass with no skips/xfails. **Approach:** link-out views for instant answers first (Phases 0–1), then a local index and crawler for offline use and trend windows (Phases 2–7), with auto-saved searches and a web crawl trigger in Phase 11. Full background, architecture, and constraints: see `context.md`.
 
 | Phase | Focus | Estimate |
 |---|---|---|
@@ -12,6 +12,10 @@
 | 5 | UI & export | 2–3 days |
 | 6 | Install commands & hardware requirements | 3–5 days |
 | 7 | Hardening | ~2 days |
+| 8 | Improvements and extensions | 1–2 days |
+| 9 | Search parity and activity signal | ~1 day |
+| 10 | Fork search scope | ~½ day |
+| 11 | Auto-saved searches & web crawl trigger | 2–3 days |
 
 ## Phase 0 — Validate (½ day)
 
@@ -128,3 +132,19 @@ GitHub excludes forks from repository search unless `fork:true` is present; the 
 - [x] Add regression tests and update docs. — 208 tests pass; README and validation notes updated.
 
 **Done when:** all Phase 10 boxes are checked and the full pytest suite passes with no skipped/xfailed tests.
+
+## Phase 11 — Auto-saved searches and web-triggered crawl (2–3 days)
+
+Interpretation: "automatically saved" means the **search definition** (query plus filters), not a second copy of result repos. Web API search already upserts every returned repo in `search_page()` (`github_tool/web/app.py`); CLI `search --save` stays opt-in for result writes. `Crawler._store_repo()` already upserts each discovered repo immediately (`github_tool/crawler.py`), so the crawl button must reuse that path rather than introduce a second writer.
+
+- [ ] Add an additive `search_history` table (`id`, `params` JSON, `source`, `result_count`, `created_at`) plus `Database.record_search()` / `list_search_history()`. Keep `saved_searches.name` unique for manual named saves; do not reuse it for automatic history.
+- [ ] Auto-save the normalized parameters of every executed search from both `/search` and CLI `search` (`api` or `local`), after results are produced and best-effort so a history-write failure never hides results. Include `q`, `keyword`, `window`, `source`, languages, `sort`, `limit`, `min_stars`, `license`, `archived`, `forks`, `in_readme`, and `readme_q`.
+- [ ] Show recent automatic searches on `/saved` alongside named searches, with a one-click replay link and a clear-history action. Preserve the existing manual save/delete behavior.
+- [ ] Add a bounded `POST /crawl` endpoint with an allowlisted profile, `max_slices`, discovery mode, and README-fetching/fork/`in_readme` options. Reject requests when `settings.offline` is true and disable the button in offline mode.
+- [ ] Start crawls as single-flight background jobs (in-process worker plus persisted `crawl_jobs` rows) instead of blocking the request; expose `/crawl/status/{job_id}` or auto-refreshing status on `/crawl` with phase, profile, progress, summary, and error.
+- [ ] Run the web-triggered crawl through `Crawler.run()` so each discovered repo is upserted immediately by `_store_repo()`. Verify the worker uses the same `GITHUB_TOOL_DB` path as the web app, and extend the crawl summary with inserted/updated/readme counts for the status view.
+- [ ] Guard against abuse: allow only one active crawl, cap slices/pages/results, accept no arbitrary host/proxy/token input from the form, and document that the UI must stay bound to loopback unless authentication is added.
+- [ ] Add regression tests: auto-save on web and CLI search, history replay/clear, offline rejection, single-flight rejection, `/crawl` form and status flow, and DB updates for each crawled repo including dedupe by numeric repo ID. Update schema-migration tests.
+- [ ] Update `README.md`, `context.md`, `docs/rate-limits.md`, and `docs/live-validation.md` with the new UI affordance, background-job behavior, rate-limit expectations, and refreshed test counts.
+
+**Done when:** every web and CLI search leaves a replayable history entry, the `/crawl` button starts one bounded background crawl at a time and reports progress, every discovered repo is visible in the local DB before the run finishes, and the full pytest suite passes with no skipped/xfailed tests.
