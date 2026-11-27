@@ -15,6 +15,7 @@ Authorization headers are never printed.
 from __future__ import annotations
 
 import argparse
+from contextlib import nullcontext
 from datetime import datetime, timezone
 import json
 import os
@@ -61,7 +62,16 @@ def check_link(http: httpx.Client, name: str, url: str) -> dict[str, object]:
         return {"name": name, "url": url, "status": None, "error": f"{type(exc).__name__}: {exc}"}
 
 
-def check_star_history(token: str | None) -> dict[str, object]:
+def check_star_history(
+    token: str | None, *, http: httpx.Client | None = None
+) -> dict[str, object]:
+    """Probe the stargazer history endpoint.
+
+    GitHub returns a JSON list of stargazers (``starred_at`` + ``user``), not
+    an object with a ``value`` key; older/proxy shapes are still accepted.
+    ``http`` is injectable so tests can use ``httpx.MockTransport``. The CLI
+    keeps calling ``check_star_history(token)`` and gets a normal client.
+    """
     headers = {
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": API_VERSION,
@@ -70,27 +80,49 @@ def check_star_history(token: str | None) -> dict[str, object]:
     if token:
         headers["Authorization"] = f"Bearer {token}"
     try:
-        with httpx.Client(timeout=30.0, follow_redirects=True) as http:
-            response = http.get(STAR_HISTORY, params={"per_page": 3}, headers=headers)
-        data = response.json() if response.status_code == 200 else {}
-        weeks = data.get("value") or []
-        first = weeks[0] if weeks else {}
+        context = (
+            nullcontext(http)
+            if http is not None
+            else httpx.Client(timeout=30.0, follow_redirects=True)
+        )
+        with context as client:
+            response = client.get(STAR_HISTORY, params={"per_page": 3}, headers=headers)
+
+        data: object = response.json() if response.status_code == 200 else None
+        rows: list[object] = []
+        if isinstance(data, list):
+            rows = data
+        elif isinstance(data, dict):
+            for key in ("value", "items", "rows"):
+                candidate = data.get(key)
+                if isinstance(candidate, list):
+                    rows = candidate
+                    break
+        first = rows[0] if rows and isinstance(rows[0], dict) else {}
+        user = first.get("user") if isinstance(first.get("user"), dict) else {}
+        days = first.get("days")
         link = response.headers.get("Link", "")
         last_page = re.search(r'[?&]page=(\d+)>;\s*rel="last"', link)
         return {
             "url": STAR_HISTORY,
             "status": response.status_code,
             "api_version": response.headers.get("X-Github-Api-Version-Selected"),
-            "value_count": len(weeks),
-            "count": data.get("Count"),
+            "rows": len(rows),
+            "first_starred_at": first.get("starred_at"),
+            "first_login": user.get("login") or first.get("login"),
+            "value_count": len(rows),  # backwards-compatible alias for "rows"
+            "count": data.get("Count") if isinstance(data, dict) else None,
             "first_week": first.get("week"),
             "first_total": first.get("total"),
-            "days_len": len(first.get("days") or []),
+            "days_len": len(days) if isinstance(days, list) else 0,
             "last_page": int(last_page.group(1)) if last_page else None,
             "rate_limit": {k: response.headers[k] for k in RATE_HEADERS if k in response.headers},
         }
     except Exception as exc:  # noqa: BLE001 - network failures are expected on bad days
-        return {"url": STAR_HISTORY, "status": None, "error": f"{type(exc).__name__}: {exc}"}
+        message = f"{type(exc).__name__}: {exc}"
+        if token:
+            message = message.replace(token, "[REDACTED]")
+        return {"url": STAR_HISTORY, "status": None, "error": message}
 
 
 def main() -> int:

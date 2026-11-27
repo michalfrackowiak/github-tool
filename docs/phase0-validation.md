@@ -9,7 +9,7 @@ Legend: **Done** = verified live; **Operator** = needs a human action; **Deviati
 | Roadmap item | Status | Evidence |
 |---|---|---|
 | Confirm linkable view URL patterns | **Done** (HTTP) | Four patterns returned HTTP 200; see table below. Browser confirmation of Trending remains optional. |
-| Create a read-only GitHub token | **Operator** | Not created. Validation used an existing broad-scoped `gh` login; see token section. |
+| Create a read-only GitHub token | **Done (operator)** | Token supplied by the operator; validation ran with `GITHUB_TOKEN` and reported `"authenticated": true` (core 5,000/hr). Least-privilege guidance remains below. |
 | Call search, star history, OSS Insight once; log rate-limit headers | **Done** | Calls and headers below. |
 | Pin star-history API version `2026-03-10` | **Done** | `X-GitHub-Api-Version` sent; response confirmed `X-Github-Api-Version-Selected: 2026-03-10`. |
 | Prototype `gh search repos` (topic, language, sort, created, JSON) | **Done** | Commands below. |
@@ -32,15 +32,13 @@ Notes:
 - `links.py` builds richer search URLs with `pushed:>=` (≤90 days) or `created:>=` (365-day fallback); the checked URL deliberately omits date qualifiers to test the base pattern.
 - Trending has no keyword filter and no documented API. Keep it an optional, low-frequency source.
 
-## 2. Read-only token — NOT created
+## 2. Read-only token — supplied by operator
 
-The roadmap item is unresolved. Validation used `gh` 2.102.0 already authenticated as a normal user with broad scopes:
+The token is no longer an outstanding item: validation passed it as `GITHUB_TOKEN` (sourced from the authenticated `gh` CLI in this environment) and confirmed `"authenticated": true` with a 5,000/hr core budget. The token value is never stored in the repository; `.env.example` is a template only.
 
-`admin:public_key, gist, read:org, repo, workflow`
+For least-privilege, long-term operation, switch to a fine-grained public read-only token:
 
-Those scopes were used only to confirm endpoints; they are broader than this project needs and should not be the long-term configuration.
-
-**Operator steps (recommended: fine-grained, public read-only):**
+**Steps (recommended: fine-grained, public read-only):**
 
 1. GitHub → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.
 2. Name it (e.g. `github-tool-readonly`), set a short expiry, and choose **Public Repositories (read-only)** under Repository access.
@@ -155,7 +153,7 @@ Every predefined keyword has tested query patterns and known per-call costs:
 
 ## Remaining operator actions
 
-1. Create the fine-grained public read-only token and set `GITHUB_TOKEN` (steps above).
+1. If not already done, replace the current credential with a fine-grained public read-only token and expose it as `GITHUB_TOKEN` (steps above).
 2. Optionally open `https://github.com/trending/python?since=weekly` in a browser to confirm the rendered list (HTTP already 200).
 3. Optionally re-check OSS Insight periodically; leave it disabled until `data_quality.status` is healthy.
 4. Revoke/rotate the broad-scoped `gh` credential if it was only for this validation.

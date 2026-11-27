@@ -2,10 +2,13 @@
 
 Usage:
     python scripts/audit_extraction.py --db path/to.db --limit 50
+    python scripts/audit_extraction.py --markdown docs/extraction-spotcheck.md --stratify
 
-This is deliberately human-readable: it does not judge semantics, it puts the
-command next to the lines around it so a reviewer can decide whether it is an
-installation step, an example, or a false positive.
+The terminal output is deliberately human-readable: it does not judge semantics,
+it puts the command next to the lines around it so a reviewer can decide whether
+it is an installation step, an example, or a false positive. ``--markdown`` writes
+the human sign-off packet using the same renderer as ``make_spotcheck.py``.
+``--stratify`` balances the sample across languages for both output modes.
 """
 
 from __future__ import annotations
@@ -16,6 +19,14 @@ import os
 from pathlib import Path
 import sqlite3
 import sys
+
+# Both scripts live in scripts/; make their helpers importable when this file is
+# loaded directly by path (e.g. from the test suite) as well as when executed.
+_SCRIPT_DIR = Path(__file__).resolve().parent
+if str(_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_DIR))
+
+from make_spotcheck import fetch_repos, write_packet  # noqa: E402
 
 DEFAULT_DB = Path(os.environ.get("GITHUB_TOOL_DB") or Path.home() / ".github-tool" / "github-tool.db")
 
@@ -42,21 +53,21 @@ def main() -> int:
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
     parser.add_argument("--limit", type=int, default=50, help="number of repos to sample")
     parser.add_argument("--json", type=Path, help="also write the sample as JSON")
+    parser.add_argument(
+        "--markdown",
+        type=Path,
+        help="write the human spot-check packet (same renderer as make_spotcheck.py)",
+    )
+    parser.add_argument(
+        "--stratify",
+        action="store_true",
+        help="balance the sample across languages instead of taking the first N by id",
+    )
     args = parser.parse_args()
 
     conn = sqlite3.connect(args.db)
     conn.row_factory = sqlite3.Row
-    repos = conn.execute(
-        """
-        SELECT r.id, r.full_name, r.readme_text
-        FROM repos r
-        WHERE r.readme_text IS NOT NULL
-          AND EXISTS (SELECT 1 FROM install_commands c WHERE c.repo_id=r.id)
-        ORDER BY r.id
-        LIMIT ?
-        """,
-        (args.limit,),
-    ).fetchall()
+    repos = fetch_repos(conn, args.limit, stratify=args.stratify)
 
     sample: list[dict[str, object]] = []
     flagged = 0
@@ -106,6 +117,14 @@ def main() -> int:
     if args.json:
         args.json.write_text(json.dumps(sample, indent=2), encoding="utf-8")
         print(f"Wrote {args.json}")
+    if args.markdown:
+        n_repos, n_cmds, flagged_in_packet = write_packet(
+            args.db, args.limit, args.markdown, stratify=args.stratify
+        )
+        print(
+            f"Wrote {args.markdown}: {n_repos} repos, {n_cmds} commands, "
+            f"{flagged_in_packet} flagged with caution words."
+        )
     conn.close()
     return 0
 

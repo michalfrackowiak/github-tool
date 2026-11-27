@@ -31,3 +31,8 @@ github_tool = ["web/templates/*.html", "web/static/*.css"]
 testpaths = ["tests"]
 addopts = "-q"
 filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff.lint]
+# Keep linting deterministic across machines: only the rules Ruff enables by
+# default, plus a pinned selection that CI can rely on.
+select = ["E4", "E7", "E9", "F"]

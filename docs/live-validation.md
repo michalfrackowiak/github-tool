@@ -14,7 +14,7 @@
 | 4 | Trending discovery hints | GitHub Trending HTML collector fetched 15 Python repos; GraphQL `repo_stats` enriched and stored all 15 |
 | 6 | Extraction | 60 READMEs → 190 commands, 727 hardware rows (154 numeric); 190/190 command lines matched their source line; all 190 commands semantically reviewed |
 | 6 | Manifest hints | Live `extract --manifests` stored 31 dependency hints and 1 Docker image for `Graphify-Labs/graphify` |
-| 7 | Tests / scheduler / logging | 200 pytest tests pass; scheduler snippets render; `httpx` noise suppressed and token redaction active |
+| 7 | Tests / scheduler / logging | 208 pytest tests pass; scheduler snippets render; `httpx` noise suppressed and token redaction active |
 
 ## Phase 1 — links
 
@@ -90,7 +90,7 @@ See [`extraction-validation.md`](extraction-validation.md) for method and limita
 
 ## Phase 7 — hardening
 
-- Pytest suite: **200 tests pass, 0 skipped/xfailed**. Coverage includes recorded-style API fixtures with `httpx.MockTransport` (304 reuse, 429 backoff, `Retry-After`, GraphQL errors, OSS Insight unavailable, Trending HTML parsing), CLI, web UI, planner, crawler resume, trends, extraction, export, scheduler, and logging redaction, plus regressions for every reviewer finding listed in [`review-fixes.md`](review-fixes.md).
+- Pytest suite: **208 tests pass, 0 skipped/xfailed**. Coverage includes recorded-style API fixtures with `httpx.MockTransport` (304 reuse, 429 backoff, `Retry-After`, GraphQL errors, OSS Insight unavailable, Trending HTML parsing), CLI, web UI, planner, crawler resume, trends, extraction, export, scheduler, and logging redaction, plus regressions for every reviewer finding listed in [`review-fixes.md`](review-fixes.md).
 - `github_tool/logging.py` redacts the token and `Authorization: Bearer` values; `httpx`/`httpcore` loggers are quieted at default verbosity.
 - `schedule --format cron|systemd|github-actions` prints copy-pasteable snippets. The Actions variant restores the SQLite database with `actions/cache` and uses a PAT secret.
 - Token hygiene: tokens come only from the environment, are excluded from `Settings.__repr__`, never appear in URLs, and are not printed by the validator.

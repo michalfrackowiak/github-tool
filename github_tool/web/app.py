@@ -6,10 +6,8 @@ explicit. If offline mode is on, routes refuse to touch GitHub.
 
 from __future__ import annotations
 
-import json
 import re
 from contextlib import contextmanager
-from datetime import datetime
 import html
 from pathlib import Path
 from typing import Any, Iterator
@@ -27,7 +25,7 @@ from ..export import to_csv, to_markdown
 from ..github import GitHubClient, GitHubError, OfflineError
 from ..keywords import KEYWORDS, LANGUAGES, WINDOW_DAYS, WINDOW_LABELS, WINDOWS, get_keyword
 from ..links import generate_links
-from ..models import Repo, TrendRow, utc_today
+from ..models import Repo, TrendRow
 
 BASE_DIR = Path(__file__).parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -493,14 +491,13 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
             except (GitHubError, OfflineError) as exc:
                 readme_error = str(exc)
 
-        extraction = None
         if repo.readme_text:
             try:
                 from ..extraction import extract_for_repo
 
-                extraction = extract_for_repo(database, repo.id, repo.readme_text)
+                extract_for_repo(database, repo.id, repo.readme_text)
             except Exception:
-                extraction = None
+                pass
         commands = database.get_install_commands(repo.id)
         hardware = database.get_hw_requirements(repo.id)
         manifest = database.get_manifest_hints(repo.id)
@@ -595,7 +592,6 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
     def crawl_page(request: Request) -> HTMLResponse:
         latest = database.latest_run()
         slices = database.slice_counts(latest["id"]) if latest else {}
-        saved_runs = []
         return templates.TemplateResponse(
             request, "crawl.html", _context(request, nav="crawl", latest=latest, slices=slices)
         )

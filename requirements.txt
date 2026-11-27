@@ -1,0 +1,5 @@
+# Runtime and development dependencies (equivalent to: pip install -e ".[dev]" plus tooling).
+-e .
+pytest
+pytest-cov
+ruff

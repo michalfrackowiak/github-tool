@@ -6,7 +6,6 @@ import argparse
 from dataclasses import replace
 from datetime import date, timedelta
 import json
-import math
 from pathlib import Path
 import re
 import sys

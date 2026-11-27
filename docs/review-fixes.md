@@ -117,7 +117,7 @@ The reviewer explicitly cleared `planner.py` slice propagation, `crawler.py` pro
 |---|---|
 | `plan_keyword()` was the one planner entry point that did not accept or forward `in_readme`/`include_forks`, so any caller using it (it is part of the module's public surface and is unit-tested) silently dropped the `in:readme` / `fork:true` qualifiers that `plan_slices()`, `compose_query()`, and `Crawler.plan_profile()` all propagate | `plan_keyword()` now takes `in_readme`/`include_forks` and forwards them to every generated slice; a regression test asserts both qualifiers appear in all slices |
 
-Cross-module re-check confirmed the CLI, web, crawler, and planner agree on `in_readme`, `include_forks`, `fork:true`, and `in:readme`; templates have no `|safe`/autoescape-off and the sparkline escapes its label; `Settings` redacts the token and LLM key; CSV export neutralizes formula injection. No other material defects found; suite is 200 tests, 0 skipped/xfailed.
+Cross-module re-check confirmed the CLI, web, crawler, and planner agree on `in_readme`, `include_forks`, `fork:true`, and `in:readme`; templates have no `|safe`/autoescape-off and the sparkline escapes its label; `Settings` redacts the token and LLM key; CSV export neutralizes formula injection. No other material defects found; suite is 208 tests, 0 skipped/xfailed.
 
 ## Remaining operator actions (not code defects)
 

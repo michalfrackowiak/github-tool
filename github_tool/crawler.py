@@ -9,7 +9,7 @@ in many slices and still be stored once.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
 import json

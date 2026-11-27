@@ -2,7 +2,7 @@
 
 _Generated 2026-11-25 from `C:\Users\asusj\.github-tool\github-tool.db`._
 
-Sampled **46 repositories** and **184 install commands**; **3** commands sit near caution words (for example / e.g. / alternative / deprecated). This is the optional independent human spot-check from the roadmap (Phase 6). The automated source-line check and an agent semantic review already passed; this packet is for a person to confirm semantic trustworthiness on a sample.
+Sampled **50 repositories** and **158 install commands**; **4** commands sit near caution words (for example / e.g. / alternative / deprecated). This is the optional independent human spot-check from the roadmap (Phase 6). The automated source-line check and an agent semantic review already passed; this packet is for a person to confirm semantic trustworthiness on a sample.
 
 ## How to review
 
@@ -14,9 +14,98 @@ Sampled **46 repositories** and **184 install commands**; **3** commands sit nea
 > Tip: `⚠ caution` marks commands whose nearby lines contain hedging words; check those first.
 
 ---
+### redis/redis
+
+- Repo: <https://github.com/redis/redis>
+- Language: C
+- Commands: 6
+
+- [ ] `docker run -d -p 6379:6379 redis:latest` (high confidence, run, README L93)
+  - L91: `- [**Official Redis Docker images (Alpine/Debian)**](https://hub.docker.com/_/redis)`
+  - L92: ````sh`
+  - L93: `docker run -d -p 6379:6379 redis:latest`
+  - L94: `````
+
+- [ ] `git clone https://github.com/redis/redis.git && cd redis` (medium confidence, clone, README L234)
+  - L232: ``
+  - L233: `# B) git checkout — clone the bundled modules once:`
+  - L234: `git clone https://github.com/redis/redis.git && cd redis`
+  - L235: `make modules-update`
+
+- [ ] `docker build -f docker/Dockerfile.noble -t redis-build:noble .` (high confidence, build, README L252)
+  - L250: ``
+  - L251: ````bash`
+  - L252: `docker build -f docker/Dockerfile.noble -t redis-build:noble .`
+  - L253: ``
+
+- [ ] `docker run --rm -it -v "$PWD":/workspace -w /workspace redis-build:noble bash -lc 'make -j"$(nproc)" && make run'` (high confidence, run, README L259)
+  - L257: ``
+  - L258: `# Build with the working tree mounted:`
+  - L259: `docker run --rm -it -v "$PWD":/workspace -w /workspace redis-build:noble \`
+  - L260: `bash -lc 'make -j"$(nproc)" && make run'`
+
+- [ ] `make install PREFIX=/usr/local` (high confidence, install, README L326)
+  - L324: ``
+  - L325: ````sh`
+  - L326: `make install PREFIX=/usr/local          # core binaries + every built module`
+  - L327: `sudo make install                       # same, into the default /usr/local`
+
+- [ ] `make build redis` (high confidence, build, README L361)
+  - L359: ``
+  - L360: ````sh`
+  - L361: `make build redis`
+  - L362: `````
+
+
+### tfussell/xlnt
+
+- Repo: <https://github.com/tfussell/xlnt>
+- Language: C++
+- Commands: 1
+
+- [ ] `git clone https://github.com/microsoft/vcpkg.git` (medium confidence, clone, README L43)
+  - L41: `You can download and install xlnt using the [vcpkg](https://github.com/microsoft/vcpkg) dependency manager:`
+  - L42: ``
+  - L43: `git clone https://github.com/microsoft/vcpkg.git`
+  - L44: `cd vcpkg`
+
+
+### dolthub/dolt
+
+- Repo: <https://github.com/dolthub/dolt>
+- Language: Go
+- Commands: 2
+
+- [ ] `brew install dolt` (medium confidence, install, README L139)
+  - L137: ``
+  - L138: `````
+  - L139: `brew install dolt`
+  - L140: `````
+
+- [ ] `go install ./cmd/dolt` (medium confidence, install, README L180)
+  - L178: ``
+  - L179: `````
+  - L180: `go install ./cmd/dolt`
+  - L181: `````
+
+
+### microsoft/TypeChat
+
+- Repo: <https://github.com/microsoft/TypeChat>
+- Language: JavaScript
+- Commands: 1
+
+- [ ] `npm install typechat` (high confidence, install, README L32)
+  - L30: ``
+  - L31: `````
+  - L32: `npm install typechat`
+  - L33: `````
+
+
 ### deepset-ai/haystack
 
 - Repo: <https://github.com/deepset-ai/haystack>
+- Language: Python
 - Commands: 2
 
 - [ ] `pip install haystack-ai` (high confidence, install, README L33)
@@ -32,9 +121,136 @@ Sampled **46 repositories** and **184 install commands**; **3** commands sit nea
   - L39: `````
 
 
+### microsoft/aici
+
+- Repo: <https://github.com/microsoft/aici>
+- Language: Rust
+- Commands: 2
+
+- [ ] `brew install git cmake ccache` (low confidence, install, README L77)
+  - L75: `or using Homebrew on macOS:`
+  - L76: ``
+  - L77: `brew install git cmake ccache`
+  - L78: ``
+
+- [ ] `pip install pytest pytest-forked ujson posix_ipc numpy requests` (low confidence, install, README L95)
+  - L93: `Last, to work with **Python** controllers and scripts (like this tutorial), run this command to install the required packages:`
+  - L94: ``
+  - L95: `pip install pytest pytest-forked ujson posix_ipc numpy requests`
+  - L96: ``
+
+
+### langfuse/langfuse
+
+- Repo: <https://github.com/langfuse/langfuse>
+- Language: TypeScript
+- Commands: 3
+
+- [ ] `git clone --depth=1 https://github.com/langfuse/langfuse.git` (medium confidence, clone, README L109)
+  - L107: ````bash`
+  - L108: `# Get a copy of the latest Langfuse repository`
+  - L109: `git clone --depth=1 https://github.com/langfuse/langfuse.git`
+  - L110: `cd langfuse`
+
+- [ ] `docker compose up` (medium confidence, run, README L113)
+  - L111: ``
+  - L112: `# Run the langfuse docker compose`
+  - L113: `docker compose up`
+  - L114: `````
+
+- [ ] `pip install langfuse openai` (medium confidence, install, README L210)
+  - L208: ``
+  - L209: ````bash`
+  - L210: `pip install langfuse openai`
+  - L211: `````
+
+
+### psycopg/psycopg2
+
+- Repo: <https://github.com/psycopg/psycopg2>
+- Language: C
+- Commands: 2
+
+- [ ] `pip install psycopg2` (low confidence, install, README L56)
+  - L54: `package, using ``pip`` to download it from PyPI_::`
+  - L55: ``
+  - L56: `$ pip install psycopg2`
+  - L57: ``
+
+- [ ] `pip install psycopg2-binary` (low confidence, install, README L66)
+  - L64: `external libraries, by installing the `psycopg2-binary`_ package from PyPI::`
+  - L65: ``
+  - L66: `$ pip install psycopg2-binary`
+  - L67: ``
+
+
+### manticoresoftware/manticoresearch
+
+- Repo: <https://github.com/manticoresoftware/manticoresearch>
+- Language: C++
+- Commands: 2
+
+- [ ] `docker run --name manticore --rm -d manticoresearch/manticore && until docker logs manticore 2>&1 | grep -q "accepting connections"; do sleep 1; done && docker exec -it manticore mysql && docker stop manticore` (medium confidence, run, README L180)
+  - L178: ``
+  - L179: `````
+  - L180: `docker run --name manticore --rm -d manticoresearch/manticore && until docker logs manticore 2>&1 | grep -q "accepting connections"; do sleep 1; done && docker exec -it manticore mysql && docker stop `
+  - L181: `````
+
+- [ ] `brew install manticoresoftware/tap/manticore` (medium confidence, install, README L231)
+  - L229: ``
+  - L230: `````
+  - L231: `brew install manticoresoftware/tap/manticore`
+  - L232: `````
+
+
+### infiniflow/ragflow
+
+- Repo: <https://github.com/infiniflow/ragflow>
+- Language: Go
+- Commands: 3
+
+- [ ] `git clone https://github.com/infiniflow/ragflow.git` (medium confidence, clone, README L182)
+  - L180: ``
+  - L181: ````bash`
+  - L182: `git clone https://github.com/infiniflow/ragflow.git`
+  - L183: `````
+
+- [ ] `git clone https://github.com/infiniflow/ragflow.git` (high confidence, clone, README L248)
+  - L246: ``
+  - L247: ````bash`
+  - L248: `git clone https://github.com/infiniflow/ragflow.git`
+  - L249: `cd ragflow`
+
+- [ ] `npm install` (high confidence, install, README L292)
+  - L290: ````bash`
+  - L291: `cd web`
+  - L292: `npm install`
+  - L293: `````
+
+
+### poloclub/transformer-explainer
+
+- Repo: <https://github.com/poloclub/transformer-explainer>
+- Language: JavaScript
+- Commands: 2
+
+- [ ] `git clone https://github.com/poloclub/transformer-explainer.git` (medium confidence, clone, README L29)
+  - L27: ``
+  - L28: ````bash`
+  - L29: `git clone https://github.com/poloclub/transformer-explainer.git`
+  - L30: `cd transformer-explainer`
+
+- [ ] `npm install` (medium confidence, install, README L31)
+  - L29: `git clone https://github.com/poloclub/transformer-explainer.git`
+  - L30: `cd transformer-explainer`
+  - L31: `npm install`
+  - L32: `npm run dev`
+
+
 ### neuml/txtai
 
 - Repo: <https://github.com/neuml/txtai>
+- Language: Python
 - Commands: 1
 
 - [ ] `pip install txtai` (high confidence, install, README L190)
@@ -44,9 +260,177 @@ Sampled **46 repositories** and **184 install commands**; **3** commands sit nea
   - L191: `````
 
 
+### StarlightSearch/EmbedAnything
+
+- Repo: <https://github.com/StarlightSearch/EmbedAnything>
+- Language: Rust
+- Commands: 2
+
+- [ ] `pip install embed-anything` (medium confidence, install, README L365)
+  - L363: ``
+  - L364: ```
+  - L365: `pip install embed-anything`
+  - L366: ``<br/>`
+
+- [ ] `pip install embed-anything-gpu` (medium confidence, install, README L371)
+  - L369: ``
+  - L370: ```
+  - L371: `pip install embed-anything-gpu`
+  - L372: ```
+
+
+### CopilotKit/CopilotKit
+
+- Repo: <https://github.com/CopilotKit/CopilotKit>
+- Language: TypeScript
+- Commands: 1
+
+- [ ] `npm install @copilotkit/react-core @copilotkit/runtime` (high confidence, install, README L82)
+  - L80: ``
+  - L81: ````bash`
+  - L82: `npm install @copilotkit/react-core @copilotkit/runtime`
+  - L83: `````
+
+
+### citusdata/citus
+
+- Repo: <https://github.com/citusdata/citus>
+- Language: C
+- Commands: 1
+
+- [ ] `docker run -d --name citus -p 5500:5432 -e POSTGRES_PASSWORD=mypassword citusdata/citus` (high confidence, run, README L80)
+  - L78: ````bash`
+  - L79: `# run PostgreSQL with Citus on port 5500`
+  - L80: `docker run -d --name citus -p 5500:5432 -e POSTGRES_PASSWORD=mypassword citusdata/citus`
+  - L81: ``
+
+
+### vxcontrol/pentagi
+
+- Repo: <https://github.com/vxcontrol/pentagi>
+- Language: Go
+- Commands: 11
+
+- [ ] `docker compose up -d` (medium confidence, run, README L865)
+  - L863: ````bash`
+  - L864: `curl -O https://raw.githubusercontent.com/vxcontrol/pentagi/master/docker-compose.yml`
+  - L865: `docker compose up -d`
+  - L866: `````
+
+- [ ] `docker compose up -d --force-recreate` (medium confidence, run, README L928)
+  - L926: ````bash`
+  - L927: `docker compose down`
+  - L928: `docker compose up -d --force-recreate`
+  - L929: `````
+
+- [ ] `go install github.com/swaggo/swag/cmd/swag@v1.8.7` (high confidence, install, README L3154)
+  - L3152: ``
+  - L3153: ````bash`
+  - L3154: `go install github.com/swaggo/swag/cmd/swag@v1.8.7`
+  - L3155: `````
+
+- [ ] `pnpm add -g fern-api` (high confidence, install, README L3180)
+  - L3178: ``
+  - L3179: ````bash`
+  - L3180: `pnpm add -g fern-api`
+  - L3181: `````
+
+- [ ] `pnpm add -g graphql-codegen` (high confidence, install, README L3196)
+  - L3194: ``
+  - L3195: ````bash`
+  - L3196: `pnpm add -g graphql-codegen`
+  - L3197: `````
+
+- [ ] `docker run --rm -v $(pwd)/.env:/opt/pentagi/.env vxcontrol/pentagi /opt/pentagi/bin/ctester -verbose` (medium confidence, run, README L3360)
+  - L3358: ````bash`
+  - L3359: `# Using Docker to test with default environment`
+  - L3360: `docker run --rm -v $(pwd)/.env:/opt/pentagi/.env vxcontrol/pentagi /opt/pentagi/bin/ctester -verbose`
+  - L3361: ``
+
+- [ ] `docker run --rm -v $(pwd)/.env:/opt/pentagi/.env -v $(pwd)/my-config.yml:/opt/pentagi/config.yml vxcontrol/pentagi /opt/pentagi/bin/ctester -config /opt/pentagi/config.yml -agents simple,primary_agent,coder -verbose` (medium confidence, run, README L3363)
+  - L3361: ``
+  - L3362: `# Test with your custom provider configuration`
+  - L3363: `docker run --rm \`
+  - L3364: `-v $(pwd)/.env:/opt/pentagi/.env \`
+
+- [ ] `docker run --rm -v $(pwd)/.env:/opt/pentagi/.env -v $(pwd):/opt/pentagi/output vxcontrol/pentagi /opt/pentagi/bin/ctester -report /opt/pentagi/output/report.md` (medium confidence, run, README L3369)
+  - L3367: ``
+  - L3368: `# Generate a detailed report`
+  - L3369: `docker run --rm \`
+  - L3370: `-v $(pwd)/.env:/opt/pentagi/.env \`
+
+- [ ] `docker build --build-arg PACKAGE_VER=$PACKAGE_VER --build-arg PACKAGE_REV=$PACKAGE_REV -t pentagi:$PACKAGE_VERSION_FULL .` (medium confidence, build, README L4169)
+  - L4167: ``
+  - L4168: `# Standard build`
+  - L4169: `docker build \`
+  - L4170: `--build-arg PACKAGE_VER=$PACKAGE_VER \`
+
+- [ ] `docker build `` (medium confidence, build, README L4197)
+  - L4195: ``
+  - L4196: `# Standard build`
+  - L4197: `docker build ``
+  - L4198: `--build-arg PACKAGE_VER=$env:PACKAGE_VER ``
+
+- [ ] `docker build -t pentagi:dev .` (high confidence, build, README L4215)
+  - L4213: ``
+  - L4214: ````bash`
+  - L4215: `docker build -t pentagi:dev .`
+  - L4216: `````
+
+
+### ConardLi/easy-dataset
+
+- Repo: <https://github.com/ConardLi/easy-dataset>
+- Language: JavaScript
+- Commands: 7
+
+- [ ] `git clone https://github.com/ConardLi/easy-dataset.git` (high confidence, clone, README L147)
+  - L145: ``
+  - L146: ````bash`
+  - L147: `git clone https://github.com/ConardLi/easy-dataset.git`
+  - L148: `cd easy-dataset`
+
+- [ ] `npm install` (high confidence, install, README L154)
+  - L152: ``
+  - L153: ````bash`
+  - L154: `npm install`
+  - L155: `````
+
+- [ ] `git clone https://github.com/ConardLi/easy-dataset.git` (medium confidence, clone, README L172)
+  - L170: ``
+  - L171: ````bash`
+  - L172: `git clone https://github.com/ConardLi/easy-dataset.git`
+  - L173: `cd easy-dataset`
+
+- [ ] `docker-compose up -d` (medium confidence, run, README L198)
+  - L196: ``
+  - L197: ````bash`
+  - L198: `docker-compose up -d`
+  - L199: `````
+
+- [ ] `git clone https://github.com/ConardLi/easy-dataset.git` (high confidence, clone, README L210)
+  - L208: ``
+  - L209: ````bash`
+  - L210: `git clone https://github.com/ConardLi/easy-dataset.git`
+  - L211: `cd easy-dataset`
+
+- [ ] `docker build -t easy-dataset .` (high confidence, build, README L217)
+  - L215: ``
+  - L216: ````bash`
+  - L217: `docker build -t easy-dataset .`
+  - L218: `````
+
+- [ ] `docker run -d -p 1717:1717 -v ./local-db:/app/local-db -v ./prisma:/app/prisma --name easy-dataset easy-dataset` (high confidence, run, README L223)
+  - L221: ``
+  - L222: ````bash`
+  - L223: `docker run -d \`
+  - L224: `-p 1717:1717 \`
+
+
 ### superduper-io/superduper
 
 - Repo: <https://github.com/superduper-io/superduper>
+- Language: Python
 - Commands: 5
 
 - [ ] `pip install superduper-framework >= 0.7.0` (high confidence, install, README L43)
@@ -80,9 +464,129 @@ Sampled **46 repositories** and **184 install commands**; **3** commands sit nea
   - L57: `````
 
 
+### trymirai/uzu
+
+- Repo: <https://github.com/trymirai/uzu>
+- Language: Rust
+- Commands: 3
+
+- [ ] `uv add uzu==0.7.5` (high confidence, install, README L85)
+  - L83: ``
+  - L84: ````bash`
+  - L85: `uv add uzu==0.7.5`
+  - L86: `````
+
+- [ ] `pnpm add @trymirai/uzu@0.7.5` (high confidence, install, README L192)
+  - L190: ``
+  - L191: ````bash`
+  - L192: `pnpm add @trymirai/uzu@0.7.5`
+  - L193: `````
+
+- [ ] `git clone https://github.com/trymirai/lalamo.git` (medium confidence, clone, README L1441)
+  - L1439: ``
+  - L1440: ````bash`
+  - L1441: `git clone https://github.com/trymirai/lalamo.git`
+  - L1442: `cd lalamo`
+
+
+### OpenHands/OpenHands
+
+- Repo: <https://github.com/OpenHands/OpenHands>
+- Language: TypeScript
+- Commands: 3
+
+- [ ] `npm install -g @openhands/agent-canvas` (medium confidence, install, README L70)
+  - L68: ``
+  - L69: ````sh`
+  - L70: `npm install -g @openhands/agent-canvas`
+  - L71: `agent-canvas`
+
+- [ ] `npm install -g @openhands/agent-canvas` (medium confidence, install, README L161)
+  - L159: ``
+  - L160: ````sh`
+  - L161: `npm install -g @openhands/agent-canvas`
+  - L162: `OH_CONVERSATION_RUNTIME=docker agent-canvas`
+
+- [ ] `git clone https://github.com/OpenHands/OpenHands.git` (medium confidence, clone, README L183)
+  - L181: ``
+  - L182: ````sh`
+  - L183: `git clone https://github.com/OpenHands/OpenHands.git`
+  - L184: `cd OpenHands`
+
+
+### timescale/timescaledb
+
+- Repo: <https://github.com/timescale/timescaledb>
+- Language: C
+- Commands: 2
+
+- [ ] `docker run -d --name timescaledb -p 6543:5432 -e POSTGRES_PASSWORD=password timescale/timescaledb-ha:pg18` (medium confidence, run, README L62)
+  - L60: ``
+  - L61: ````bash`
+  - L62: `docker run -d --name timescaledb \`
+  - L63: `-p 6543:5432 \`
+
+- [ ] `docker run -d --name timescaledb -p 6543:5432 -e POSTGRES_PASSWORD=password timescale/timescaledb-ha:pg18` (medium confidence, run, README L412)
+  - L410: `curl -sL https://tsdb.co/start-local | sh`
+  - L411: `# Option 2: Use manual Docker command`
+  - L412: `docker run -d --name timescaledb -p 6543:5432 -e POSTGRES_PASSWORD=password timescale/timescaledb-ha:pg18`
+  - L413: `````
+
+
+### Gaurav-Gosain/tuios
+
+- Repo: <https://github.com/Gaurav-Gosain/tuios>
+- Language: Go
+- Commands: 5
+
+- [ ] `brew install tuios` (medium confidence, install, README L73)
+  - L71: `**Homebrew (macOS/Linux):**`
+  - L72: ````bash`
+  - L73: `brew install tuios`
+  - L74: `````
+
+- [ ] `brew install gaurav-gosain/tap/tuios-ghostty` (medium confidence, install, README L79) **⚠ caution**
+  - L77: ````bash`
+  - L78: `brew uninstall tuios`
+  - L79: `brew install gaurav-gosain/tap/tuios-ghostty`
+  - L80: `````
+
+- [ ] `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest` (medium confidence, install, README L103)
+  - L101: ``
+  - L102: `# Go install`
+  - L103: `go install github.com/Gaurav-Gosain/tuios/cmd/tuios@latest`
+  - L104: ``
+
+- [ ] `docker run -it --rm ghcr.io/gaurav-gosain/tuios:latest` (medium confidence, run, README L106)
+  - L104: ``
+  - L105: `# Docker`
+  - L106: `docker run -it --rm ghcr.io/gaurav-gosain/tuios:latest`
+  - L107: `````
+
+- [ ] `git clone https://github.com/gaurav-gosain/tuios.git` (medium confidence, clone, README L361)
+  - L359: ``
+  - L360: ````bash`
+  - L361: `git clone https://github.com/gaurav-gosain/tuios.git`
+  - L362: `cd tuios`
+
+
+### dataease/SQLBot
+
+- Repo: <https://github.com/dataease/SQLBot>
+- Language: JavaScript
+- Commands: 1
+
+- [ ] `docker run -d --name sqlbot --restart unless-stopped -p 8000:8000 -p 8001:8001 -v ./data/sqlbot/excel:/opt/sqlbot/data/excel -v ./data/sqlbot/file:/opt/sqlbot/data/file -v ./data/sqlbot/images:/opt/sqlbot/images -v ./data/sqlbot/logs:/opt/sqlbot/app/logs -v ./data/postgresql:/var/lib/postgresql/data --privileged=true dataease/sqlbot` (medium confidence, run, README L40)
+  - L38: ``
+  - L39: ````bash`
+  - L40: `docker run -d \`
+  - L41: `--name sqlbot \`
+
+
 ### langchain-ai/langchain
 
 - Repo: <https://github.com/langchain-ai/langchain>
+- Language: Python
 - Commands: 1
 
 - [ ] `uv add langchain` (high confidence, install, README L32)
@@ -92,9 +596,177 @@ Sampled **46 repositories** and **184 install commands**; **3** commands sit nea
   - L33: `````
 
 
+### AntigmaLabs/ante
+
+- Repo: <https://github.com/AntigmaLabs/ante>
+- Language: Rust
+- Commands: 1
+
+- [ ] `cargo install ante-acp ante-gateway` (high confidence, install, README L247)
+  - L245: ``
+  - L246: ````sh`
+  - L247: `cargo install ante-acp ante-gateway`
+  - L248: `````
+
+
+### ItzCrazyKns/Vane
+
+- Repo: <https://github.com/ItzCrazyKns/Vane>
+- Language: TypeScript
+- Commands: 7
+
+- [ ] `docker run -d -p 3000:3000 -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:latest` (high confidence, run, README L71)
+  - L69: ``
+  - L70: ````bash`
+  - L71: `docker run -d -p 3000:3000 -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:latest`
+  - L72: `````
+
+- [ ] `docker run -d -p 3000:3000 -e SEARXNG_API_URL=http://your-searxng-url:8080 -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:slim-latest` (medium confidence, run, README L83)
+  - L81: ``
+  - L82: ````bash`
+  - L83: `docker run -d -p 3000:3000 -e SEARXNG_API_URL=http://your-searxng-url:8080 -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:slim-latest`
+  - L84: `````
+
+- [ ] `git clone https://github.com/ItzCrazyKns/Vane.git` (high confidence, clone, README L101)
+  - L99: ``
+  - L100: ````bash`
+  - L101: `git clone https://github.com/ItzCrazyKns/Vane.git`
+  - L102: `````
+
+- [ ] `docker build -t vane .` (high confidence, build, README L109)
+  - L107: ``
+  - L108: ````bash`
+  - L109: `docker build -t vane .`
+  - L110: `docker run -d -p 3000:3000 -v vane-data:/home/vane/data --name vane vane`
+
+- [ ] `docker run -d -p 3000:3000 -v vane-data:/home/vane/data --name vane vane` (high confidence, run, README L110)
+  - L108: ````bash`
+  - L109: `docker build -t vane .`
+  - L110: `docker run -d -p 3000:3000 -v vane-data:/home/vane/data --name vane vane`
+  - L111: `````
+
+- [ ] `git clone https://github.com/ItzCrazyKns/Vane.git` (high confidence, clone, README L123)
+  - L121: ``
+  - L122: ````bash`
+  - L123: `git clone https://github.com/ItzCrazyKns/Vane.git`
+  - L124: `cd Vane`
+
+- [ ] `npm i` (high confidence, install, README L130)
+  - L128: ``
+  - L129: ````bash`
+  - L130: `npm i`
+  - L131: `````
+
+
+### taosdata/TDengine
+
+- Repo: <https://github.com/taosdata/TDengine>
+- Language: C
+- Commands: 1
+
+- [ ] `git clone https://github.com/taosdata/TDengine.git` (high confidence, clone, README L132)
+  - L130: ``
+  - L131: ````bash`
+  - L132: `git clone https://github.com/taosdata/TDengine.git`
+  - L133: `cd TDengine`
+
+
+### AIPentest/CyberStrikeAI
+
+- Repo: <https://github.com/AIPentest/CyberStrikeAI>
+- Language: Go
+- Commands: 2
+
+- [ ] `git clone https://github.com/Ed1s0nZ/CyberStrikeAI.git` (high confidence, clone, README L200)
+  - L198: `**One-Command Deployment:**`
+  - L199: ````bash`
+  - L200: `git clone https://github.com/Ed1s0nZ/CyberStrikeAI.git`
+  - L201: `cd CyberStrikeAI`
+
+- [ ] `brew install nmap masscan sqlmap nikto gobuster ffuf hydra hashcat nuclei subfinder` (high confidence, install, README L244)
+  - L242: `**macOS (Homebrew):**`
+  - L243: ````bash`
+  - L244: `brew install nmap masscan sqlmap nikto gobuster ffuf hydra hashcat nuclei subfinder`
+  - L245: `````
+
+
+### decolua/9router
+
+- Repo: <https://github.com/decolua/9router>
+- Language: JavaScript
+- Commands: 11
+
+- [ ] `npm install -g 9router` (high confidence, install, README L79)
+  - L77: ``
+  - L78: ````bash`
+  - L79: `npm install -g 9router`
+  - L80: `9router`
+
+- [ ] `npm install` (high confidence, install, README L106)
+  - L104: ````bash`
+  - L105: `cp .env.example .env`
+  - L106: `npm install`
+  - L107: `PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev`
+
+- [ ] `pip install "headroom-ai[proxy]"` (medium confidence, install, README L584)
+  - L582: ``
+  - L583: ````bash`
+  - L584: `pip install "headroom-ai[proxy]"`
+  - L585: `headroom proxy --port 8787`
+
+- [ ] `git clone https://github.com/decolua/9router.git` (medium confidence, clone, README L1252)
+  - L1250: ````bash`
+  - L1251: `# Clone and install`
+  - L1252: `git clone https://github.com/decolua/9router.git`
+  - L1253: `cd 9router`
+
+- [ ] `npm install` (medium confidence, install, README L1254)
+  - L1252: `git clone https://github.com/decolua/9router.git`
+  - L1253: `cd 9router`
+  - L1254: `npm install`
+  - L1255: `npm run build`
+
+- [ ] `npm install -g pm2` (medium confidence, install, README L1273)
+  - L1271: ``
+  - L1272: `# Or use PM2`
+  - L1273: `npm install -g pm2`
+  - L1274: `pm2 start npm --name 9router -- start`
+
+- [ ] `docker run -d --name 9router -p 20128:20128 -v "$HOME/.9router:/app/data" -e DATA_DIR=/app/data decolua/9router:latest` (medium confidence, run, README L1289)
+  - L1287: ``
+  - L1288: ````bash`
+  - L1289: `docker run -d \`
+  - L1290: `--name 9router \`
+
+- [ ] `git clone https://github.com/decolua/9router.git` (medium confidence, clone, README L1302)
+  - L1300: ``
+  - L1301: ````bash`
+  - L1302: `git clone https://github.com/decolua/9router.git`
+  - L1303: `cd 9router/app`
+
+- [ ] `docker build -t 9router .` (medium confidence, build, README L1304)
+  - L1302: `git clone https://github.com/decolua/9router.git`
+  - L1303: `cd 9router/app`
+  - L1304: `docker build -t 9router .`
+  - L1305: `docker run -d --name 9router -p 20128:20128 \`
+
+- [ ] `docker run -d --name 9router -p 20128:20128 -v "$HOME/.9router:/app/data" -e DATA_DIR=/app/data 9router` (medium confidence, run, README L1305)
+  - L1303: `cd 9router/app`
+  - L1304: `docker build -t 9router .`
+  - L1305: `docker run -d --name 9router -p 20128:20128 \`
+  - L1306: `-v "$HOME/.9router:/app/data" -e DATA_DIR=/app/data 9router`
+
+- [ ] `docker pull decolua/9router:latest` (medium confidence, install, README L1320)
+  - L1318: `docker restart 9router`
+  - L1319: `docker stop 9router && docker rm 9router`
+  - L1320: `docker pull decolua/9router:latest   # update to latest`
+  - L1321: `````
+
+
 ### run-llama/llama_index
 
 - Repo: <https://github.com/run-llama/llama_index>
+- Language: Python
 - Commands: 4
 
 - [ ] `pip install llama-index-core` (high confidence, install, README L115)
@@ -122,9 +794,171 @@ Sampled **46 repositories** and **184 install commands**; **3** commands sit nea
   - L119: `````
 
 
+### chrishayuk/larql
+
+- Repo: <https://github.com/chrishayuk/larql>
+- Language: Rust
+- Commands: 1
+
+- [ ] `git clone https://github.com/chrishayuk/larql && cd larql` (high confidence, clone, README L44)
+  - L42: ``
+  - L43: ````bash`
+  - L44: `git clone https://github.com/chrishayuk/larql && cd larql`
+  - L45: `cargo build --release -p larql-cli -p larql-server   # Linux/Windows: add --no-default-features`
+
+
+### firecrawl/firecrawl
+
+- Repo: <https://github.com/firecrawl/firecrawl>
+- Language: TypeScript
+- Commands: 3
+
+- [ ] `cargo install firecrawl-local` (medium confidence, install, README L61)
+  - L59: ``
+  - L60: ````bash`
+  - L61: `cargo install firecrawl-local`
+  - L62: `````
+
+- [ ] `pip install firecrawl` (medium confidence, install, README L474)
+  - L472: ``
+  - L473: ````bash`
+  - L474: `pip install firecrawl`
+  - L475: `````
+
+- [ ] `npm install firecrawl` (medium confidence, install, README L503)
+  - L501: ``
+  - L502: ````bash`
+  - L503: `npm install firecrawl`
+  - L504: `````
+
+
+### orioledb/orioledb
+
+- Repo: <https://github.com/orioledb/orioledb>
+- Language: C
+- Commands: 4
+
+- [ ] `docker pull orioledb/orioledb:latest-pg17` (medium confidence, install, README L99)
+  - L97: ``
+  - L98: `````
+  - L99: `docker pull orioledb/orioledb:latest-pg17`
+  - L100: `````
+
+- [ ] `docker run --name some-postgres -e POSTGRES_PASSWORD=... -e POSTGRES_INITDB_ARGS="--locale=C" -d -p5432:5432 orioledb/orioledb:latest-pg17` (medium confidence, run, README L104) **⚠ caution**
+  - L102: ````bash`
+  - L103: `# !Don't forget to set default locale to C, POSIX or use icu-locale`
+  - L104: `docker run --name some-postgres -e POSTGRES_PASSWORD=... -e POSTGRES_INITDB_ARGS="--locale=C" -d -p5432:5432 orioledb/orioledb:latest-pg17`
+  - L105: `````
+
+- [ ] `git clone https://github.com/orioledb/orioledb` (high confidence, clone, README L122)
+  - L120: `# 1. Clone this repo first -- .pgtags pins the exact patched-PostgreSQL`
+  - L121: `# commit you must build against.`
+  - L122: `$ git clone https://github.com/orioledb/orioledb`
+  - L123: `$ cd orioledb`
+
+- [ ] `git clone https://github.com/orioledb/postgres orioledb-postgres` (high confidence, clone, README L133)
+  - L131: `# one -- it moves).`
+  - L132: `$ cd ..`
+  - L133: `$ git clone https://github.com/orioledb/postgres orioledb-postgres`
+  - L134: `$ cd orioledb-postgres`
+
+
+### Gentleman-Programming/gentle-ai
+
+- Repo: <https://github.com/Gentleman-Programming/gentle-ai>
+- Language: Go
+- Commands: 2
+
+- [ ] `brew install gentleman-programming/tap/gentle-ai` (medium confidence, install, README L280)
+  - L278: ````bash`
+  - L279: `# macOS (Homebrew)`
+  - L280: `brew install gentleman-programming/tap/gentle-ai`
+  - L281: ``
+
+- [ ] `go install github.com/gentleman-programming/gentle-ai/v5/cmd/gentle-ai@v5.0.0` (medium confidence, install, README L286)
+  - L284: ``
+  - L285: `# Windows (PowerShell) — source install of v5.0.0, needs Go 1.25.10+`
+  - L286: `go install github.com/gentleman-programming/gentle-ai/v5/cmd/gentle-ai@v5.0.0`
+  - L287: `````
+
+
+### affaan-m/ECC
+
+- Repo: <https://github.com/affaan-m/ECC>
+- Language: JavaScript
+- Commands: 11
+
+- [ ] `git clone https://github.com/affaan-m/ECC.git` (medium confidence, clone, README L304)
+  - L302: ``
+  - L303: ````bash`
+  - L304: `git clone https://github.com/affaan-m/ECC.git`
+  - L305: `cd ECC`
+
+- [ ] `git clone https://github.com/affaan-m/ECC.git` (medium confidence, clone, README L369)
+  - L367: ``
+  - L368: ````bash`
+  - L369: `git clone https://github.com/affaan-m/ECC.git`
+  - L370: `cd ECC`
+
+- [ ] `npm install` (medium confidence, install, README L371)
+  - L369: `git clone https://github.com/affaan-m/ECC.git`
+  - L370: `cd ECC`
+  - L371: `npm install`
+  - L372: `bash scripts/sync-ecc-to-codex.sh`
+
+- [ ] `git clone https://github.com/affaan-m/ECC.git` (medium confidence, clone, README L421)
+  - L419: ``
+  - L420: ````bash`
+  - L421: `git clone https://github.com/affaan-m/ECC.git`
+  - L422: `cd ECC`
+
+- [ ] `git clone https://github.com/affaan-m/ECC.git` (medium confidence, clone, README L566)
+  - L564: ``
+  - L565: ````bash`
+  - L566: `git clone https://github.com/affaan-m/ECC.git`
+  - L567: `cd ECC`
+
+- [ ] `git clone https://github.com/affaan-m/ECC.git` (medium confidence, clone, README L574)
+  - L572: ``
+  - L573: ````powershell`
+  - L574: `git clone https://github.com/affaan-m/ECC.git`
+  - L575: `cd ECC`
+
+- [ ] `npm install -g ecc-universal@2.2.3` (medium confidence, install, README L1273)
+  - L1271: ``
+  - L1272: ````bash`
+  - L1273: `npm install -g ecc-universal@2.2.3`
+  - L1274: `ecc memory init --scope project`
+
+- [ ] `npm install && bash scripts/sync-ecc-to-codex.sh` (medium confidence, install, README L1573)
+  - L1571: ````bash`
+  - L1572: `# Compatibility-only managed sync into ~/.codex`
+  - L1573: `npm install && bash scripts/sync-ecc-to-codex.sh`
+  - L1574: ``
+
+- [ ] `npm install ecc-universal@2.2.3` (high confidence, install, README L1685)
+  - L1683: `**Option 2: Install as npm package**`
+  - L1684: ````bash`
+  - L1685: `npm install ecc-universal@2.2.3`
+  - L1686: `````
+
+- [ ] `git clone https://github.com/affaan-m/ECC.git && cd ECC` (medium confidence, clone, README L1746)
+  - L1744: ``
+  - L1745: ````bash`
+  - L1746: `git clone https://github.com/affaan-m/ECC.git && cd ECC`
+  - L1747: `copilot skill list`
+
+- [ ] `git clone --depth 1 https://github.com/affaan-m/ECC.git && cd ECC` (medium confidence, clone, README L1760)
+  - L1758: ``
+  - L1759: ````bash`
+  - L1760: `git clone --depth 1 https://github.com/affaan-m/ECC.git && cd ECC`
+  - L1761: `npx -y @github/copilot@1.0.82 skill list --json | jq '[.[] | select(.source=="project")] | length'`
+
+
 ### langbot-app/LangBot
 
 - Repo: <https://github.com/langbot-app/LangBot>
+- Language: Python
 - Commands: 1
 
 - [ ] `git clone https://github.com/langbot-app/LangBot` (medium confidence, clone, README L93)
@@ -134,9 +968,104 @@ Sampled **46 repositories** and **184 install commands**; **3** commands sit nea
   - L94: `cd LangBot/docker`
 
 
+### linshenkx/prompt-optimizer
+
+- Repo: <https://github.com/linshenkx/prompt-optimizer>
+- Language: TypeScript
+- Commands: 5
+
+- [ ] `docker run -d -p 8081:80 --restart unless-stopped --name prompt-optimizer linshen/prompt-optimizer` (medium confidence, run, README L142)
+  - L140: ````bash`
+  - L141: `# Run container (default configuration)`
+  - L142: `docker run -d -p 8081:80 --restart unless-stopped --name prompt-optimizer linshen/prompt-optimizer`
+  - L143: ``
+
+- [ ] `git clone https://github.com/linshenkx/prompt-optimizer.git` (medium confidence, clone, README L161)
+  - L159: ````bash`
+  - L160: `# 1. Clone the repository`
+  - L161: `git clone https://github.com/linshenkx/prompt-optimizer.git`
+  - L162: `cd prompt-optimizer`
+
+- [ ] `docker run -d -p 8081:80 -e VITE_OPENAI_API_KEY=your-openai-key -e MCP_DEFAULT_MODEL_PROVIDER=openai --name prompt-optimizer linshen/prompt-optimizer` (medium confidence, run, README L202) **⚠ caution**
+  - L200: `For example, if you map the container's port 80 to port 8081 on the host:`
+  - L201: ````bash`
+  - L202: `docker run -d -p 8081:80 \`
+  - L203: `-e VITE_OPENAI_API_KEY=your-openai-key \`
+
+- [ ] `git clone https://github.com/linshenkx/prompt-optimizer.git` (medium confidence, clone, README L264)
+  - L262: ````bash`
+  - L263: `# 1. Clone the project`
+  - L264: `git clone https://github.com/linshenkx/prompt-optimizer.git`
+  - L265: `cd prompt-optimizer`
+
+- [ ] `pnpm install` (medium confidence, install, README L268)
+  - L266: ``
+  - L267: `# 2. Install dependencies`
+  - L268: `pnpm install`
+  - L269: ``
+
+
+### dicedb/dicedb
+
+- Repo: <https://github.com/dicedb/dicedb>
+- Language: C
+- Commands: 2
+
+- [ ] `docker run --name dicedb-001 -p 6379:6379 -v $(pwd)/data:/data/ dicedb/dicedb` (medium confidence, run, README L17)
+  - L15: ``
+  - L16: ````bash`
+  - L17: `docker run \`
+  - L18: `--name dicedb-001 \`
+
+- [ ] `docker run --name dicedb-001 -p 6379:6379 -v $(pwd)/data:/data/ dicedb/dicedb dicedb-server --port 6379 --maxmemory 500mb --protected-mode no` (medium confidence, run, README L30)
+  - L28: ``
+  - L29: ````bash`
+  - L30: `docker run \`
+  - L31: `--name dicedb-001 \`
+
+
+### mvanhorn/cli-printing-press
+
+- Repo: <https://github.com/mvanhorn/cli-printing-press>
+- Language: Go
+- Commands: 3
+
+- [ ] `go install github.com/mvanhorn/cli-printing-press/v4/cmd/cli-printing-press@latest` (high confidence, install, README L70)
+  - L68: ``
+  - L69: ````bash`
+  - L70: `go install github.com/mvanhorn/cli-printing-press/v4/cmd/cli-printing-press@latest`
+  - L71: `````
+
+- [ ] `git clone https://github.com/mvanhorn/cli-printing-press.git` (high confidence, clone, README L104)
+  - L102: ``
+  - L103: ````bash`
+  - L104: `git clone https://github.com/mvanhorn/cli-printing-press.git`
+  - L105: `cd cli-printing-press`
+
+- [ ] `brew install lefthook` (medium confidence, install, README L576)
+  - L574: ``
+  - L575: ````bash`
+  - L576: `brew install lefthook`
+  - L577: `lefthook install --reset-hooks-path`
+
+
+### mdiri-ai/SoduWork
+
+- Repo: <https://github.com/mdiri-ai/SoduWork>
+- Language: JavaScript
+- Commands: 1
+
+- [ ] `git clone https://github.com/mdiri-ai/SoduWork` (medium confidence, clone, README L28)
+  - L26: ``
+  - L27: ````sh`
+  - L28: `git clone https://github.com/mdiri-ai/SoduWork`
+  - L29: `cd SoduWork`
+
+
 ### Future-House/paper-qa
 
 - Repo: <https://github.com/Future-House/paper-qa>
+- Language: Python
 - Commands: 3
 
 - [ ] `pip install paper-qa` (high confidence, install, README L77)
@@ -158,9 +1087,42 @@ Sampled **46 repositories** and **184 install commands**; **3** commands sit nea
   - L727: `````
 
 
+### DayuanJiang/next-ai-draw-io
+
+- Repo: <https://github.com/DayuanJiang/next-ai-draw-io>
+- Language: TypeScript
+- Commands: 2
+
+- [ ] `git clone https://github.com/DayuanJiang/next-ai-draw-io` (high confidence, clone, README L154)
+  - L152: ``
+  - L153: ````bash`
+  - L154: `git clone https://github.com/DayuanJiang/next-ai-draw-io`
+  - L155: `cd next-ai-draw-io`
+
+- [ ] `npm install` (high confidence, install, README L156)
+  - L154: `git clone https://github.com/DayuanJiang/next-ai-draw-io`
+  - L155: `cd next-ai-draw-io`
+  - L156: `npm install`
+  - L157: `cp env.example .env.local   # add your provider and API key, see "Models and providers" below`
+
+
+### Tencent/LoopForge
+
+- Repo: <https://github.com/Tencent/LoopForge>
+- Language: Go
+- Commands: 1
+
+- [ ] `git clone https://github.com/Tencent/LoopForge.git` (high confidence, clone, README L76)
+  - L74: ``
+  - L75: ````bash`
+  - L76: `git clone https://github.com/Tencent/LoopForge.git`
+  - L77: `cd LoopForge`
+
+
 ### chatchat-space/Langchain-Chatchat
 
 - Repo: <https://github.com/chatchat-space/Langchain-Chatchat>
+- Language: Python
 - Commands: 4
 
 - [ ] `pip install langchain-chatchat -U` (medium confidence, install, README L141)
@@ -188,9 +1150,84 @@ Sampled **46 repositories** and **184 install commands**; **3** commands sit nea
   - L310: `````
 
 
+### iOfficeAI/AionUi
+
+- Repo: <https://github.com/iOfficeAI/AionUi>
+- Language: TypeScript
+- Commands: 1
+
+- [ ] `brew install aionui` (high confidence, install, README L645) **⚠ caution**
+  - L643: ````bash`
+  - L644: `# Alternatively, macOS via Homebrew`
+  - L645: `brew install aionui`
+  - L646: `````
+
+
+### BaaRai/ARTEX
+
+- Repo: <https://github.com/BaaRai/ARTEX>
+- Language: Go
+- Commands: 9
+
+- [ ] `git clone https://github.com/BaaRai/ARTEX.git` (high confidence, clone, README L49)
+  - L47: ``
+  - L48: ````bash`
+  - L49: `git clone https://github.com/BaaRai/ARTEX.git`
+  - L50: `cd ARTEX`
+
+- [ ] `docker compose up -d --build` (high confidence, run, README L52)
+  - L50: `cd ARTEX`
+  - L51: `cp .env.example .env            # set POSTGRES_PASSWORD (and optionally an LLM key)`
+  - L52: `docker compose up -d --build    # builds from this checkout, starts PostgreSQL`
+  - L53: `````
+
+- [ ] `git clone https://github.com/BaaRai/ARTEX.git` (high confidence, clone, README L322)
+  - L320: ``
+  - L321: ````bash`
+  - L322: `git clone https://github.com/BaaRai/ARTEX.git`
+  - L323: `cd ARTEX`
+
+- [ ] `git clone https://github.com/BaaRai/ARTEX.git` (high confidence, clone, README L343)
+  - L341: ``
+  - L342: ````bash`
+  - L343: `git clone https://github.com/BaaRai/ARTEX.git`
+  - L344: `cd ARTEX`
+
+- [ ] `docker compose up -d --build` (high confidence, run, README L346)
+  - L344: `cd ARTEX`
+  - L345: `cp .env.example .env            # set POSTGRES_PASSWORD, optionally ANTHROPIC_API_KEY`
+  - L346: `docker compose up -d --build`
+  - L347: `# → http://localhost:8787`
+
+- [ ] `docker pull ghcr.io/baarai/artex:latest` (high confidence, install, README L372)
+  - L370: ``
+  - L371: ````bash`
+  - L372: `docker pull ghcr.io/baarai/artex:latest`
+  - L373: ``
+
+- [ ] `docker run -d --name artex --security-opt no-new-privileges:true -p 127.0.0.1:8787:8787 -p 127.0.0.1:8788:8788 -e ARTEX_PG_HOST=host.docker.internal -e ARTEX_PG_PORT=5432 -e ARTEX_PG_USER=artex -e ARTEX_PG_PASSWORD='yourpass' -e ARTEX_PG_DBNAME=artex -e ARTEX_PG_SSLMODE=disable -e ARTEX_JWT_KEY_DIR=/app/keys -v "$PWD/data:/app/data" -v "$PWD/keys:/app/keys" ghcr.io/baarai/artex:latest` (high confidence, run, README L375)
+  - L373: ``
+  - L374: `mkdir -p data keys`
+  - L375: `docker run -d --name artex \`
+  - L376: `--security-opt no-new-privileges:true \`
+
+- [ ] `docker compose build artex` (medium confidence, build, README L838)
+  - L836: `cd ARTEX`
+  - L837: `git pull`
+  - L838: `docker compose build artex`
+  - L839: `docker compose up -d artex`
+
+- [ ] `docker compose up -d artex` (medium confidence, run, README L839)
+  - L837: `git pull`
+  - L838: `docker compose build artex`
+  - L839: `docker compose up -d artex`
+  - L840: `docker image prune -f            # optional`
+
+
 ### eosphoros-ai/DB-GPT
 
 - Repo: <https://github.com/eosphoros-ai/DB-GPT>
+- Language: Python
 - Commands: 1
 
 - [ ] `pip install dbgpt-app` (medium confidence, install, README L202)
@@ -200,9 +1237,29 @@ Sampled **46 repositories** and **184 install commands**; **3** commands sit nea
   - L203: `dbgpt start`
 
 
+### can1357/oh-my-pi
+
+- Repo: <https://github.com/can1357/oh-my-pi>
+- Language: TypeScript
+- Commands: 2
+
+- [ ] `brew install can1357/tap/omp` (high confidence, install, README L54)
+  - L52: ``
+  - L53: ````sh`
+  - L54: `brew install can1357/tap/omp`
+  - L55: `````
+
+- [ ] `bun install -g @oh-my-pi/pi-coding-agent` (high confidence, install, README L60)
+  - L58: ``
+  - L59: ````sh`
+  - L60: `bun install -g @oh-my-pi/pi-coding-agent`
+  - L61: `````
+
+
 ### mem0ai/mem0
 
 - Repo: <https://github.com/mem0ai/mem0>
+- Language: Python
 - Commands: 5
 
 - [ ] `npm install -g @mem0/cli` (medium confidence, install, README L96)
@@ -236,1169 +1293,30 @@ Sampled **46 repositories** and **184 install commands**; **3** commands sit nea
   - L165: ``
 
 
-### pathwaycom/serviette
+### paperclipai/paperclip
 
-- Repo: <https://github.com/pathwaycom/serviette>
-- Commands: 5
-
-- [ ] `pip install serviette` (medium confidence, install, README L30)
-  - L28: ``
-  - L29: ````bash`
-  - L30: `pip install serviette`
-  - L31: `export PATHWAY_LICENSE_KEY=...        # free: https://pathway.com/framework/get-license`
-
-- [ ] `pip install "serviette[local]" --extra-index-url https://download.pytorch.org/whl/cpu` (medium confidence, install, README L99)
-  - L97: ``
-  - L98: ````bash`
-  - L99: `pip install "serviette[local]" --extra-index-url https://download.pytorch.org/whl/cpu`
-  - L100: `# [local] = free local embeddings, the wizard's default. It brings PyTorch; the`
-
-- [ ] `git clone https://github.com/pathwaycom/serviette.git && cd serviette` (medium confidence, clone, README L464)
-  - L462: ``
-  - L463: `# 1. serviette in its own virtualenv`
-  - L464: `git clone https://github.com/pathwaycom/serviette.git && cd serviette`
-  - L465: `python3.12 -m venv .venv`
-
-- [ ] `pip install -e ".[dev,local]"` (medium confidence, install, README L467)
-  - L465: `python3.12 -m venv .venv`
-  - L466: `source .venv/bin/activate`
-  - L467: `pip install -e ".[dev,local]"`
-  - L468: ``
-
-- [ ] `pip install "serviette[qdrant]"` (medium confidence, install, README L511)
-  - L509: ``
-  - L510: ````bash`
-  - L511: `pip install "serviette[qdrant]"      # also: pgvector, milvus, chroma, weaviate,`
-  - L512: `#       pinecone, mongodb, local, gemini, all`
-
-
-### langchain-ai/langgraph
-
-- Repo: <https://github.com/langchain-ai/langgraph>
-- Commands: 1
-
-- [ ] `pip install -U langgraph` (medium confidence, install, README L27)
-  - L25: ``
-  - L26: ````bash`
-  - L27: `pip install -U langgraph`
-  - L28: `````
-
-
-### dataelement/bisheng
-
-- Repo: <https://github.com/dataelement/bisheng>
-- Commands: 1
-
-- [ ] `git clone https://github.com/dataelement/bisheng.git` (medium confidence, clone, README L128)
-  - L126: ``
-  - L127: ````bash`
-  - L128: `git clone https://github.com/dataelement/bisheng.git`
-  - L129: `cd bisheng`
-
-
-### 1Panel-dev/MaxKB
-
-- Repo: <https://github.com/1Panel-dev/MaxKB>
-- Commands: 1
-
-- [ ] `docker run -d --name=maxkb --restart=always -p 8080:8080 -v ~/.maxkb:/opt/maxkb 1panel/maxkb` (high confidence, run, README L27)
-  - L25: ``
-  - L26: ````bash`
-  - L27: `docker run -d --name=maxkb --restart=always -p 8080:8080 -v ~/.maxkb:/opt/maxkb 1panel/maxkb`
-  - L28: `````
-
-
-### TaskingAI/TaskingAI
-
-- Repo: <https://github.com/TaskingAI/TaskingAI>
+- Repo: <https://github.com/paperclipai/paperclip>
+- Language: TypeScript
 - Commands: 2
 
-- [ ] `git clone https://github.com/taskingai/taskingai.git` (high confidence, clone, README L113)
-  - L111: ``
-  - L112: ````bash`
-  - L113: `git clone https://github.com/taskingai/taskingai.git`
-  - L114: `cd taskingai`
-
-- [ ] `pip install taskingai` (medium confidence, install, README L172)
-  - L170: ``
-  - L171: ````bash`
-  - L172: `pip install taskingai`
-  - L173: `````
-
-
-### ScrapeGraphAI/Scrapegraph-ai
-
-- Repo: <https://github.com/ScrapeGraphAI/Scrapegraph-ai>
-- Commands: 1
-
-- [ ] `pip install scrapegraphai` (high confidence, install, README L59)
-  - L57: ``
-  - L58: ````bash`
-  - L59: `pip install scrapegraphai`
-  - L60: ``
-
-
-### SciPhi-AI/R2R
-
-- Repo: <https://github.com/SciPhi-AI/R2R>
-- Commands: 3
-
-- [ ] `pip install r2r` (high confidence, install, README L59)
-  - L57: ````bash`
-  - L58: `# Quick install and run in light mode`
-  - L59: `pip install r2r`
-  - L60: `export OPENAI_API_KEY=sk-...`
-
-- [ ] `pip install r2r` (high confidence, install, README L80)
-  - L78: ````bash`
-  - L79: `# Install SDK`
-  - L80: `pip install r2r  # Python`
-  - L81: `# or`
-
-- [ ] `npm i r2r-js` (high confidence, install, README L82)
-  - L80: `pip install r2r  # Python`
-  - L81: `# or`
-  - L82: `npm i r2r-js    # JavaScript`
-  - L83: `````
-
-
-### lavague-ai/LaVague
-
-- Repo: <https://github.com/lavague-ai/LaVague>
-- Commands: 1
-
-- [ ] `pip install lavague` (medium confidence, install, README L62)
-  - L60: ``
-  - L61: ````bash`
-  - L62: `pip install lavague`
-  - L63: `````
-
-
-### Canner/WrenAI
-
-- Repo: <https://github.com/Canner/WrenAI>
-- Commands: 2
-
-- [ ] `pip install wrenai` (high confidence, install, README L50)
-  - L48: ``
-  - L49: ````bash`
-  - L50: `pip install wrenai`
-  - L51: `````
-
-- [ ] `pip install wrenai -i https://pypi.tuna.tsinghua.edu.cn/simple` (high confidence, install, README L75)
-  - L73: ``
-  - L74: ````bash`
-  - L75: `pip install wrenai -i https://pypi.tuna.tsinghua.edu.cn/simple`
-  - L76: `````
-
-
-### Cinnamon/kotaemon
-
-- Repo: <https://github.com/Cinnamon/kotaemon>
-- Commands: 7
-
-- [ ] `docker run -e GRADIO_SERVER_NAME=0.0.0.0 -e GRADIO_SERVER_PORT=7860 -v ./ktem_app_data:/app/ktem_app_data -p 7860:7860 -it --rm ghcr.io/cinnamon/kotaemon:main-full` (medium confidence, run, README L104)
-  - L102: ``
-  - L103: ````shell`
-  - L104: `docker run \`
-  - L105: `-e GRADIO_SERVER_NAME=0.0.0.0 \`
-
-- [ ] `docker run -e GRADIO_SERVER_NAME=0.0.0.0 -e GRADIO_SERVER_PORT=7860 -v ./ktem_app_data:/app/ktem_app_data -p 7860:7860 -it --rm --platform linux/arm64 ghcr.io/cinnamon/kotaemon:main-lite` (medium confidence, run, README L130)
-  - L128: ````shell`
-  - L129: `# To run docker with platform linux/arm64`
-  - L130: `docker run \`
-  - L131: `-e GRADIO_SERVER_NAME=0.0.0.0 \`
-
-- [ ] `git clone https://github.com/Cinnamon/kotaemon` (medium confidence, clone, README L148)
-  - L146: ``
-  - L147: ````shell`
-  - L148: `git clone https://github.com/Cinnamon/kotaemon`
-  - L149: `cd kotaemon`
-
-- [ ] `conda create -n kotaemon python=3.10` (medium confidence, install, README L164)
-  - L162: ``
-  - L163: ````shell`
-  - L164: `conda create -n kotaemon python=3.10`
-  - L165: `conda activate kotaemon`
-
-- [ ] `pip install -e "libs/kotaemon[all]"` (medium confidence, install, README L167)
-  - L165: `conda activate kotaemon`
-  - L166: ``
-  - L167: `pip install -e "libs/kotaemon[all]"`
-  - L168: `pip install -e "libs/ktem"`
-
-- [ ] `pip install -e "libs/ktem"` (medium confidence, install, README L168)
-  - L166: ``
-  - L167: `pip install -e "libs/kotaemon[all]"`
-  - L168: `pip install -e "libs/ktem"`
-  - L169: `````
-
-- [ ] `pip install "graphrag<=0.3.6" future` (high confidence, install, README L229)
-  - L227: ``
-  - L228: ````shell`
-  - L229: `pip install "graphrag<=0.3.6" future`
-  - L230: `````
-
-
-### PacktPublishing/LLM-Engineers-Handbook
-
-- Repo: <https://github.com/PacktPublishing/LLM-Engineers-Handbook>
-- Commands: 1
-
-- [ ] `git clone https://github.com/PacktPublishing/LLM-Engineers-Handbook.git` (medium confidence, clone, README L126)
-  - L124: ``
-  - L125: ````bash`
-  - L126: `git clone https://github.com/PacktPublishing/LLM-Engineers-Handbook.git`
-  - L127: `cd LLM-Engineers-Handbook`
-
-
-### Shubhamsaboo/awesome-llm-apps
-
-- Repo: <https://github.com/Shubhamsaboo/awesome-llm-apps>
-- Commands: 2
-
-- [ ] `git clone https://github.com/Shubhamsaboo/awesome-llm-apps.git` (high confidence, clone, README L66)
-  - L64: ``
-  - L65: ````bash`
-  - L66: `git clone https://github.com/Shubhamsaboo/awesome-llm-apps.git`
-  - L67: `cd awesome-llm-apps/starter_ai_agents/ai_travel_agent`
-
-- [ ] `pip install -r requirements.txt` (high confidence, install, README L68)
-  - L66: `git clone https://github.com/Shubhamsaboo/awesome-llm-apps.git`
-  - L67: `cd awesome-llm-apps/starter_ai_agents/ai_travel_agent`
-  - L68: `pip install -r requirements.txt`
-  - L69: `streamlit run travel_agent.py`
-
-
-### unclecode/crawl4ai
-
-- Repo: <https://github.com/unclecode/crawl4ai>
-- Commands: 5
-
-- [ ] `pip install -U crawl4ai` (high confidence, install, README L122)
-  - L120: ``
-  - L121: ````bash`
-  - L122: `pip install -U crawl4ai`
-  - L123: `crawl4ai-setup        # installs the browser, once`
-
-- [ ] `pip install -U crawl4ai` (high confidence, install, README L256)
-  - L254: ``
-  - L255: ````bash`
-  - L256: `pip install -U crawl4ai`
-  - L257: `crawl4ai-setup      # installs and sets up the browser`
-
-- [ ] `git clone https://github.com/unclecode/crawl4ai.git` (high confidence, clone, README L272)
-  - L270: ``
-  - L271: ````bash`
-  - L272: `git clone https://github.com/unclecode/crawl4ai.git`
-  - L273: `cd crawl4ai`
-
-- [ ] `pip install -e ".[all]"` (high confidence, install, README L274)
-  - L272: `git clone https://github.com/unclecode/crawl4ai.git`
-  - L273: `cd crawl4ai`
-  - L274: `pip install -e ".[all]"     # or: pip install -e .   (the core only)`
-  - L275: `````
-
-- [ ] `docker run -d -p 11235:11235 --name crawl4ai --shm-size=1g -e CRAWL4AI_API_TOKEN="$CRAWL4AI_API_TOKEN" unclecode/crawl4ai:latest` (high confidence, run, README L285)
-  - L283: ````bash`
-  - L284: `export CRAWL4AI_API_TOKEN="$(openssl rand -hex 32)"`
-  - L285: `docker run -d -p 11235:11235 --name crawl4ai --shm-size=1g \`
-  - L286: `-e CRAWL4AI_API_TOKEN="$CRAWL4AI_API_TOKEN" \`
-
-
-### xerrors/Yuxi
-
-- Repo: <https://github.com/xerrors/Yuxi>
-- Commands: 1
-
-- [ ] `git clone --branch v0.8.0 --depth 1 https://github.com/xerrors/Yuxi.git` (medium confidence, clone, README L39)
-  - L37: ``
-  - L38: ````bash`
-  - L39: `git clone --branch v0.8.0 --depth 1 https://github.com/xerrors/Yuxi.git`
-  - L40: `cd Yuxi`
-
-
-### getzep/graphiti
-
-- Repo: <https://github.com/getzep/graphiti>
-- Commands: 20
-
-- [ ] `docker run -p 6379:6379 -p 3000:3000 -it --rm falkordb/falkordb:latest` (medium confidence, run, README L183) **⚠ caution**
-  - L181: `> Alternatively, you can use FalkorDB on-premises via Docker and instantly start with the quickstart example:`
-  - L182: `> ````
-  - L183: `> docker run -p 6379:6379 -p 3000:3000 -it --rm falkordb/falkordb:latest`
-  - L184: `> ````
-
-- [ ] `pip install graphiti-core` (high confidence, install, README L187)
-  - L185: ``
-  - L186: ````bash`
-  - L187: `pip install graphiti-core`
-  - L188: `````
-
-- [ ] `uv add graphiti-core` (high confidence, install, README L193)
-  - L191: ``
-  - L192: ````bash`
-  - L193: `uv add graphiti-core`
-  - L194: `````
-
-- [ ] `pip install graphiti-core[falkordb]` (high confidence, install, README L201)
-  - L199: ``
-  - L200: ````bash`
-  - L201: `pip install graphiti-core[falkordb]`
-  - L202: ``
-
-- [ ] `uv add graphiti-core[falkordb]` (high confidence, install, README L204)
-  - L202: ``
-  - L203: `# or with uv`
-  - L204: `uv add graphiti-core[falkordb]`
-  - L205: ``
-
-- [ ] `pip install graphiti-core[falkordblite]` (high confidence, install, README L207)
-  - L205: ``
-  - L206: `# or embedded version (requires Python 3.12+)`
-  - L207: `pip install graphiti-core[falkordblite]`
-  - L208: `# or with uv`
-
-- [ ] `uv add graphiti-core[falkordblite]` (high confidence, install, README L209)
-  - L207: `pip install graphiti-core[falkordblite]`
-  - L208: `# or with uv`
-  - L209: `uv add graphiti-core[falkordblite]`
-  - L210: `````
-
-- [ ] `pip install graphiti-core[neptune]` (high confidence, install, README L217)
-  - L215: ``
-  - L216: ````bash`
-  - L217: `pip install graphiti-core[neptune]`
-  - L218: ``
-
-- [ ] `uv add graphiti-core[neptune]` (high confidence, install, README L220)
-  - L218: ``
-  - L219: `# or with uv`
-  - L220: `uv add graphiti-core[neptune]`
-  - L221: `````
-
-- [ ] `pip install graphiti-core[relate]` (high confidence, install, README L229)
-  - L227: ``
-  - L228: ````bash`
-  - L229: `pip install graphiti-core[relate]`
-  - L230: ``
-
-- [ ] `uv add graphiti-core[relate]` (high confidence, install, README L232)
-  - L230: ``
-  - L231: `# or with uv`
-  - L232: `uv add graphiti-core[relate]`
-  - L233: `````
-
-- [ ] `pip install graphiti-core[anthropic]` (high confidence, install, README L248)
-  - L246: ````bash`
-  - L247: `# Install with Anthropic support`
-  - L248: `pip install graphiti-core[anthropic]`
-  - L249: ``
-
-- [ ] `pip install graphiti-core[groq]` (high confidence, install, README L251)
-  - L249: ``
-  - L250: `# Install with Groq support`
-  - L251: `pip install graphiti-core[groq]`
-  - L252: ``
-
-- [ ] `pip install graphiti-core[google-genai]` (high confidence, install, README L254)
-  - L252: ``
-  - L253: `# Install with Google Gemini support`
-  - L254: `pip install graphiti-core[google-genai]`
-  - L255: ``
-
-- [ ] `pip install graphiti-core[anthropic,groq,google-genai]` (high confidence, install, README L257)
-  - L255: ``
-  - L256: `# Install with multiple providers`
-  - L257: `pip install graphiti-core[anthropic,groq,google-genai]`
-  - L258: ``
-
-- [ ] `pip install graphiti-core[falkordb,anthropic,google-genai]` (high confidence, install, README L260)
-  - L258: ``
-  - L259: `# Install with FalkorDB and LLM providers`
-  - L260: `pip install graphiti-core[falkordb,anthropic,google-genai]`
-  - L261: ``
-
-- [ ] `pip install graphiti-core[neptune]` (high confidence, install, README L263)
-  - L261: ``
-  - L262: `# Install with Amazon Neptune`
-  - L263: `pip install graphiti-core[neptune]`
-  - L264: `````
-
-- [ ] `docker compose up` (high confidence, run, README L308)
-  - L306: ``
-  - L307: ````bash`
-  - L308: `docker compose up`
-  - L309: `````
-
-- [ ] `uv add "graphiti-core[google-genai]"` (medium confidence, install, README L509)
-  - L507: ``
-  - L508: ````bash`
-  - L509: `uv add "graphiti-core[google-genai]"`
-  - L510: ``
-
-- [ ] `pip install "graphiti-core[google-genai]"` (medium confidence, install, README L513)
-  - L511: `# or`
-  - L512: ``
-  - L513: `pip install "graphiti-core[google-genai]"`
-  - L514: `````
-
-
-### potpie-ai/potpie
-
-- Repo: <https://github.com/potpie-ai/potpie>
-- Commands: 1
-
-- [ ] `python3 -m pip install --user potpie` (high confidence, install, README L31)
-  - L29: ``
-  - L30: ````bash`
-  - L31: `python3 -m pip install --user potpie`
-  - L32: `````
-
-
-### HKUDS/LightRAG
-
-- Repo: <https://github.com/HKUDS/LightRAG>
-- Commands: 5
-
-- [ ] `git clone https://github.com/HKUDS/LightRAG.git` (high confidence, clone, README L144)
-  - L142: ``
-  - L143: ````bash`
-  - L144: `git clone https://github.com/HKUDS/LightRAG.git`
-  - L145: `cd LightRAG`
-
-- [ ] `bun install --frozen-lockfile` (high confidence, install, README L167)
-  - L165: ````bash`
-  - L166: `cd lightrag_webui`
-  - L167: `bun install --frozen-lockfile`
-  - L168: `bun run build`
-
-- [ ] `git clone https://github.com/HKUDS/LightRAG.git` (medium confidence, clone, README L204)
-  - L202: ``
-  - L203: ````bash`
-  - L204: `git clone https://github.com/HKUDS/LightRAG.git`
-  - L205: `cd LightRAG`
-
-- [ ] `docker compose up` (medium confidence, run, README L207)
-  - L205: `cd LightRAG`
-  - L206: `cp env.example .env  # edit it first: see "Minimum .env Changes" below`
-  - L207: `docker compose up`
-  - L208: `````
-
-- [ ] `brew install cairo` (medium confidence, install, README L281)
-  - L279: ``
-  - L280: `# macOS (Homebrew)`
-  - L281: `brew install cairo`
-  - L282: ``
-
-
-### OpenBMB/UltraRAG
-
-- Repo: <https://github.com/OpenBMB/UltraRAG>
-- Commands: 10
-
-- [ ] `python -m pip install --upgrade "pip>=26.2.2" "uv==0.13.7"` (high confidence, install, README L130)
-  - L128: ````shell`
-  - L129: `## Direct installation`
-  - L130: `python -m pip install --upgrade "pip>=26.2.2" "uv==0.13.7"`
-  - L131: `## Download`
-
-- [ ] `git clone https://github.com/OpenBMB/UltraRAG.git --depth 1` (high confidence, clone, README L138)
-  - L136: ``
-  - L137: ````shell`
-  - L138: `git clone https://github.com/OpenBMB/UltraRAG.git --depth 1`
-  - L139: `cd UltraRAG`
-
-- [ ] `git clone https://github.com/OpenBMB/UltraRAG.git --depth 1` (medium confidence, clone, README L213)
-  - L211: ````shell`
-  - L212: `# 1. Clone the repository`
-  - L213: `git clone https://github.com/OpenBMB/UltraRAG.git --depth 1`
-  - L214: `cd UltraRAG`
-
-- [ ] `docker pull hdxin2002/ultrarag:latest-base-cpu` (medium confidence, install, README L218)
-  - L216: `# 2. Prepare the image (choose one)`
-  - L217: `# Option A: Pull from Docker Hub`
-  - L218: `docker pull hdxin2002/ultrarag:latest-base-cpu # Core dependencies (CPU)`
-  - L219: `docker pull hdxin2002/ultrarag:latest-base-gpu # Core dependencies (GPU base)`
-
-- [ ] `docker pull hdxin2002/ultrarag:latest-base-gpu` (medium confidence, install, README L219)
-  - L217: `# Option A: Pull from Docker Hub`
-  - L218: `docker pull hdxin2002/ultrarag:latest-base-cpu # Core dependencies (CPU)`
-  - L219: `docker pull hdxin2002/ultrarag:latest-base-gpu # Core dependencies (GPU base)`
-  - L220: `docker pull hdxin2002/ultrarag:latest          # All extras (GPU)`
-
-- [ ] `docker pull hdxin2002/ultrarag:latest` (medium confidence, install, README L220)
-  - L218: `docker pull hdxin2002/ultrarag:latest-base-cpu # Core dependencies (CPU)`
-  - L219: `docker pull hdxin2002/ultrarag:latest-base-gpu # Core dependencies (GPU base)`
-  - L220: `docker pull hdxin2002/ultrarag:latest          # All extras (GPU)`
-  - L221: ``
-
-- [ ] `docker build -f Dockerfile.base-cpu -t ultrarag:latest-base-cpu .` (medium confidence, build, README L223)
-  - L221: ``
-  - L222: `# Option B: Build locally`
-  - L223: `docker build -f Dockerfile.base-cpu -t ultrarag:latest-base-cpu . # CPU`
-  - L224: `docker build -t ultrarag:latest .                              # Full GPU image`
-
-- [ ] `docker build -t ultrarag:latest .` (medium confidence, build, README L224)
-  - L222: `# Option B: Build locally`
-  - L223: `docker build -f Dockerfile.base-cpu -t ultrarag:latest-base-cpu . # CPU`
-  - L224: `docker build -t ultrarag:latest .                              # Full GPU image`
-  - L225: `````
-
-- [ ] `docker run --rm -it -p 5050:5050 hdxin2002/ultrarag:latest-base-cpu` (medium confidence, run, README L242)
-  - L240: ````shell`
-  - L241: `# CPU: no GPU runtime required`
-  - L242: `docker run --rm -it -p 5050:5050 hdxin2002/ultrarag:latest-base-cpu`
-  - L243: ``
-
-- [ ] `docker run --rm -it --gpus all -p 5050:5050 hdxin2002/ultrarag:latest` (medium confidence, run, README L245)
-  - L243: ``
-  - L244: `# GPU: requires the NVIDIA Container Toolkit`
-  - L245: `docker run --rm -it --gpus all -p 5050:5050 hdxin2002/ultrarag:latest`
-  - L246: `````
-
-
-### zilliztech/deep-searcher
-
-- Repo: <https://github.com/zilliztech/deep-searcher>
-- Commands: 4
-
-- [ ] `pip install deepsearcher` (medium confidence, install, README L45)
-  - L43: `Install DeepSearcher`
-  - L44: ````bash`
-  - L45: `pip install deepsearcher`
-  - L46: `````
-
-- [ ] `pip install "deepsearcher[ollama]"` (medium confidence, install, README L50) **⚠ caution**
-  - L48: `For optional dependencies, e.g., ollama:`
-  - L49: ````bash`
-  - L50: `pip install "deepsearcher[ollama]"`
-  - L51: `````
-
-- [ ] `git clone https://github.com/zilliztech/deep-searcher.git && cd deep-searcher` (high confidence, clone, README L58)
-  - L56: `Clone the repository and navigate to the project directory:`
-  - L57: ````shell`
-  - L58: `git clone https://github.com/zilliztech/deep-searcher.git && cd deep-searcher`
-  - L59: `````
-
-- [ ] `pip install nest_asyncio` (medium confidence, install, README L543)
-  - L541: ``
-  - L542: `````
-  - L543: `pip install nest_asyncio`
-  - L544: `````
-
-
-### VectifyAI/PageIndex
-
-- Repo: <https://github.com/VectifyAI/PageIndex>
-- Commands: 2
-
-- [ ] `pip install -U pageindex` (high confidence, install, README L84)
-  - L82: ``
-  - L83: ````bash`
-  - L84: `pip install -U pageindex`
-  - L85: `````
-
-- [ ] `pip install -U pageindex` (high confidence, install, README L185)
-  - L183: ``
-  - L184: ````bash`
-  - L185: `pip install -U pageindex`
-  - L186: `````
-
-
-### ModelEngine-Group/nexent
-
-- Repo: <https://github.com/ModelEngine-Group/nexent>
-- Commands: 2
-
-- [ ] `git clone https://github.com/ModelEngine-Group/nexent.git` (medium confidence, clone, README L44)
-  - L42: ``
-  - L43: ````bash`
-  - L44: `git clone https://github.com/ModelEngine-Group/nexent.git`
-  - L45: `cd nexent`
-
-- [ ] `git clone https://github.com/ModelEngine-Group/nexent.git` (medium confidence, clone, README L64)
-  - L62: ``
-  - L63: ````bash`
-  - L64: `git clone https://github.com/ModelEngine-Group/nexent.git`
-  - L65: `cd nexent`
-
-
-### StarTrail-org/LEANN
-
-- Repo: <https://github.com/StarTrail-org/LEANN>
-- Commands: 7
-
-- [ ] `git clone https://github.com/StarTrail-org/LEANN.git leann` (high confidence, clone, README L107)
-  - L105: ``
-  - L106: ````bash`
-  - L107: `git clone https://github.com/StarTrail-org/LEANN.git leann`
-  - L108: `cd leann`
-
-- [ ] `git clone https://github.com/StarTrail-org/LEANN.git leann` (high confidence, clone, README L136)
-  - L134: ``
-  - L135: ````bash`
-  - L136: `git clone https://github.com/StarTrail-org/LEANN.git leann`
-  - L137: `cd leann`
-
-- [ ] `brew install libomp boost protobuf zeromq pkgconf` (high confidence, install, README L146)
-  - L144: ``
-  - L145: ````bash`
-  - L146: `brew install libomp boost protobuf zeromq pkgconf`
-  - L147: `uv sync --extra diskann`
-
-- [ ] `git clone https://aur.archlinux.org/paru-bin.git` (high confidence, clone, README L173)
-  - L171: `# For MKL in DiskANN`
-  - L172: `sudo pacman -S --needed base-devel git`
-  - L173: `git clone https://aur.archlinux.org/paru-bin.git`
-  - L174: `cd paru-bin && makepkg -si`
-
-- [ ] `pip install "mineru>=4.0,<5"` (medium confidence, install, README L470)
-  - L468: ``
-  - L469: ````bash`
-  - L470: `pip install "mineru>=4.0,<5"`
-  - L471: ``
-
-- [ ] `brew install poppler` (medium confidence, install, README L513)
-  - L511: `# Install dependencies`
-  - L512: `uv pip install colpali_engine pdf2image pillow matplotlib qwen_vl_utils einops seaborn`
-  - L513: `brew install poppler  # macOS only, for PDF processing`
-  - L514: `````
-
-- [ ] `brew install sunnyyoung/repo/wechattweak-cli` (medium confidence, install, README L658)
-  - L656: ``
-  - L657: ````bash`
-  - L658: `brew install sunnyyoung/repo/wechattweak-cli`
-  - L659: `````
-
-
-### volcengine/MineContext
-
-- Repo: <https://github.com/volcengine/MineContext>
-- Commands: 3
-
-- [ ] `pnpm install` (high confidence, install, README L251)
-  - L249: `pip config unset global.index-url`
-  - L250: `cd frontend`
-  - L251: `pnpm install`
-  - L252: `````
-
-- [ ] `git clone https://github.com/volcengine/MineContext.git` (high confidence, clone, README L341)
-  - L339: ````bash`
-  - L340: `# Clone repository`
-  - L341: `git clone https://github.com/volcengine/MineContext.git`
-  - L342: `cd MineContext`
-
-- [ ] `pip install -e .` (high confidence, install, README L407)
-  - L405: ````bash`
-  - L406: `source .venv/bin/activate  # On Windows: .venv\Scripts\activate`
-  - L407: `pip install -e .`
-  - L408: `opencontext start --port 1733`
-
-
-### MemoriLabs/Memori
-
-- Repo: <https://github.com/MemoriLabs/Memori>
-- Commands: 3
-
-- [ ] `npm install @memorilabs/memori` (high confidence, install, README L44)
-  - L42: ``
-  - L43: ````bash`
-  - L44: `npm install @memorilabs/memori`
-  - L45: `````
-
-- [ ] `pip install memori` (high confidence, install, README L52)
-  - L50: ``
-  - L51: ````bash`
-  - L52: `pip install memori`
-  - L53: `````
-
-- [ ] `pip install hermes-memori` (medium confidence, install, README L163)
-  - L161: ``
-  - L162: ````bash`
-  - L163: `pip install hermes-memori`
-  - L164: `hermes-memori install`
-
-
-### bojieli/ai-agent-book
-
-- Repo: <https://github.com/bojieli/ai-agent-book>
-- Commands: 25
-
-- [ ] `git clone https://github.com/bojieli/ai-agent-book.git` (medium confidence, clone, README L89)
-  - L87: ``
-  - L88: ````bash`
-  - L89: `git clone https://github.com/bojieli/ai-agent-book.git`
-  - L90: `cd ai-agent-book`
-
-- [ ] `python -m pip install -e ".[ch1]"` (medium confidence, install, README L102)
-  - L100: ``
-  - L101: `# 未安装 uv 时：使用 pip 从 pyproject.toml 重新解析`
-  - L102: `python -m pip install -e ".[ch1]"`
-  - L103: `````
-
-- [ ] `git clone https://github.com/anthropics/claude-quickstarts.git chapter6/claude-quickstarts && git -C chapter6/claude-quickstarts checkout --detach 9bcc95e316e5ef6542b4c9d0469f4078829eead5` (medium confidence, clone, README L187)
-  - L185: ````bash`
-  - L186: `# 第 6 章 · GUI 与机器人外部复现轨道`
-  - L187: `git clone https://github.com/anthropics/claude-quickstarts.git chapter6/claude-quickstarts && git -C chapter6/claude-quickstarts checkout --detach 9bcc95e316e5ef6542b4c9d0469f4078829eead5  # 实验 6-9 使用`
-  - L188: `git clone https://github.com/browser-use/browser-use.git chapter6/browser-use && git -C chapter6/browser-use checkout --detach ec9277c5001f2cb78ee419c927775a3cfc227ff8  # 实验 6-10`
-
-- [ ] `git clone https://github.com/browser-use/browser-use.git chapter6/browser-use && git -C chapter6/browser-use checkout --detach ec9277c5001f2cb78ee419c927775a3cfc227ff8` (medium confidence, clone, README L188)
-  - L186: `# 第 6 章 · GUI 与机器人外部复现轨道`
-  - L187: `git clone https://github.com/anthropics/claude-quickstarts.git chapter6/claude-quickstarts && git -C chapter6/claude-quickstarts checkout --detach 9bcc95e316e5ef6542b4c9d0469f4078829eead5  # 实验 6-9 使用`
-  - L188: `git clone https://github.com/browser-use/browser-use.git chapter6/browser-use && git -C chapter6/browser-use checkout --detach ec9277c5001f2cb78ee419c927775a3cfc227ff8  # 实验 6-10`
-  - L189: `git clone https://github.com/Vector-Wangel/XLeRobot.git chapter6/XLeRobot && git -C chapter6/XLeRobot fetch origin 3d14695e40c9c68229c0aacffca6053c75cd3eb6 && git -C chapter6/XLeRobot checkout --detac`
-
-- [ ] `git clone https://github.com/Vector-Wangel/XLeRobot.git chapter6/XLeRobot && git -C chapter6/XLeRobot fetch origin 3d14695e40c9c68229c0aacffca6053c75cd3eb6 && git -C chapter6/XLeRobot checkout --detach 3d14695e40c9c68229c0aacffca6053c75cd3eb6 && test "$(git -C chapter6/XLeRobot rev-parse HEAD)" = "3d14695e40c9c68229c0aacffca6053c75cd3eb6"` (medium confidence, clone, README L189)
-  - L187: `git clone https://github.com/anthropics/claude-quickstarts.git chapter6/claude-quickstarts && git -C chapter6/claude-quickstarts checkout --detach 9bcc95e316e5ef6542b4c9d0469f4078829eead5  # 实验 6-9 使用`
-  - L188: `git clone https://github.com/browser-use/browser-use.git chapter6/browser-use && git -C chapter6/browser-use checkout --detach ec9277c5001f2cb78ee419c927775a3cfc227ff8  # 实验 6-10`
-  - L189: `git clone https://github.com/Vector-Wangel/XLeRobot.git chapter6/XLeRobot && git -C chapter6/XLeRobot fetch origin 3d14695e40c9c68229c0aacffca6053c75cd3eb6 && git -C chapter6/XLeRobot checkout --detac`
-  - L190: `git clone https://github.com/Grigorij-Dudnik/RoboCrew.git chapter6/RoboCrew && git -C chapter6/RoboCrew fetch origin c749148f29bd14e61347f9fc3530c343fff0d994 && git -C chapter6/RoboCrew checkout --det`
-
-- [ ] `git clone https://github.com/Grigorij-Dudnik/RoboCrew.git chapter6/RoboCrew && git -C chapter6/RoboCrew fetch origin c749148f29bd14e61347f9fc3530c343fff0d994 && git -C chapter6/RoboCrew checkout --detach c749148f29bd14e61347f9fc3530c343fff0d994 && test "$(git -C chapter6/RoboCrew rev-parse HEAD)" = "c749148f29bd14e61347f9fc3530c343fff0d994"` (medium confidence, clone, README L190)
-  - L188: `git clone https://github.com/browser-use/browser-use.git chapter6/browser-use && git -C chapter6/browser-use checkout --detach ec9277c5001f2cb78ee419c927775a3cfc227ff8  # 实验 6-10`
-  - L189: `git clone https://github.com/Vector-Wangel/XLeRobot.git chapter6/XLeRobot && git -C chapter6/XLeRobot fetch origin 3d14695e40c9c68229c0aacffca6053c75cd3eb6 && git -C chapter6/XLeRobot checkout --detac`
-  - L190: `git clone https://github.com/Grigorij-Dudnik/RoboCrew.git chapter6/RoboCrew && git -C chapter6/RoboCrew fetch origin c749148f29bd14e61347f9fc3530c343fff0d994 && git -C chapter6/RoboCrew checkout --det`
-  - L191: `git clone https://github.com/StoneT2000/lerobot-sim2real.git chapter6/lerobot-sim2real && git -C chapter6/lerobot-sim2real fetch origin 87d6c1d969f6e0ca4dc5697940804e231118a63a && git -C chapter6/lero`
-
-- [ ] `git clone https://github.com/StoneT2000/lerobot-sim2real.git chapter6/lerobot-sim2real && git -C chapter6/lerobot-sim2real fetch origin 87d6c1d969f6e0ca4dc5697940804e231118a63a && git -C chapter6/lerobot-sim2real checkout --detach 87d6c1d969f6e0ca4dc5697940804e231118a63a && test "$(git -C chapter6/lerobot-sim2real rev-parse HEAD)" = "87d6c1d969f6e0ca4dc5697940804e231118a63a"` (medium confidence, clone, README L191)
-  - L189: `git clone https://github.com/Vector-Wangel/XLeRobot.git chapter6/XLeRobot && git -C chapter6/XLeRobot fetch origin 3d14695e40c9c68229c0aacffca6053c75cd3eb6 && git -C chapter6/XLeRobot checkout --detac`
-  - L190: `git clone https://github.com/Grigorij-Dudnik/RoboCrew.git chapter6/RoboCrew && git -C chapter6/RoboCrew fetch origin c749148f29bd14e61347f9fc3530c343fff0d994 && git -C chapter6/RoboCrew checkout --det`
-  - L191: `git clone https://github.com/StoneT2000/lerobot-sim2real.git chapter6/lerobot-sim2real && git -C chapter6/lerobot-sim2real fetch origin 87d6c1d969f6e0ca4dc5697940804e231118a63a && git -C chapter6/lero`
-  - L192: ``
-
-- [ ] `git clone https://github.com/google-research/android_world.git chapter7/android_world && git -C chapter7/android_world checkout --detach 0e95d641e244504c22087cc29b013f3b2428a261` (medium confidence, clone, README L194)
-  - L192: ``
-  - L193: `# 第 7 章 · 评测基准`
-  - L194: `git clone https://github.com/google-research/android_world.git chapter7/android_world && git -C chapter7/android_world checkout --detach 0e95d641e244504c22087cc29b013f3b2428a261`
-  - L195: `git clone https://huggingface.co/datasets/gaia-benchmark/GAIA chapter7/GAIA && git -C chapter7/GAIA checkout --detach 682dd723ee1e1697e00360edccf2366dc8418dd9`
-
-- [ ] `git clone https://huggingface.co/datasets/gaia-benchmark/GAIA chapter7/GAIA && git -C chapter7/GAIA checkout --detach 682dd723ee1e1697e00360edccf2366dc8418dd9` (medium confidence, clone, README L195)
-  - L193: `# 第 7 章 · 评测基准`
-  - L194: `git clone https://github.com/google-research/android_world.git chapter7/android_world && git -C chapter7/android_world checkout --detach 0e95d641e244504c22087cc29b013f3b2428a261`
-  - L195: `git clone https://huggingface.co/datasets/gaia-benchmark/GAIA chapter7/GAIA && git -C chapter7/GAIA checkout --detach 682dd723ee1e1697e00360edccf2366dc8418dd9`
-  - L196: `git clone https://github.com/xlang-ai/OSWorld.git chapter7/OSWorld && git -C chapter7/OSWorld checkout --detach 8365edc975efd0477a0d62444a5beed562ab5a7b`
-
-- [ ] `git clone https://github.com/xlang-ai/OSWorld.git chapter7/OSWorld && git -C chapter7/OSWorld checkout --detach 8365edc975efd0477a0d62444a5beed562ab5a7b` (medium confidence, clone, README L196)
-  - L194: `git clone https://github.com/google-research/android_world.git chapter7/android_world && git -C chapter7/android_world checkout --detach 0e95d641e244504c22087cc29b013f3b2428a261`
-  - L195: `git clone https://huggingface.co/datasets/gaia-benchmark/GAIA chapter7/GAIA && git -C chapter7/GAIA checkout --detach 682dd723ee1e1697e00360edccf2366dc8418dd9`
-  - L196: `git clone https://github.com/xlang-ai/OSWorld.git chapter7/OSWorld && git -C chapter7/OSWorld checkout --detach 8365edc975efd0477a0d62444a5beed562ab5a7b`
-  - L197: `git clone https://github.com/SWE-bench/SWE-bench.git chapter7/SWE-bench && git -C chapter7/SWE-bench checkout --detach 5cd4be9fb23971679cbbafe5a0ecade27cef99be`
-
-- [ ] `git clone https://github.com/SWE-bench/SWE-bench.git chapter7/SWE-bench && git -C chapter7/SWE-bench checkout --detach 5cd4be9fb23971679cbbafe5a0ecade27cef99be` (medium confidence, clone, README L197)
-  - L195: `git clone https://huggingface.co/datasets/gaia-benchmark/GAIA chapter7/GAIA && git -C chapter7/GAIA checkout --detach 682dd723ee1e1697e00360edccf2366dc8418dd9`
-  - L196: `git clone https://github.com/xlang-ai/OSWorld.git chapter7/OSWorld && git -C chapter7/OSWorld checkout --detach 8365edc975efd0477a0d62444a5beed562ab5a7b`
-  - L197: `git clone https://github.com/SWE-bench/SWE-bench.git chapter7/SWE-bench && git -C chapter7/SWE-bench checkout --detach 5cd4be9fb23971679cbbafe5a0ecade27cef99be`
-  - L198: `git clone https://github.com/sierra-research/tau2-bench.git chapter7/tau2-bench && git -C chapter7/tau2-bench checkout --detach 8d005b0e5b9e4af0bc055886fa7f95fc86d1710e`
-
-- [ ] `git clone https://github.com/sierra-research/tau2-bench.git chapter7/tau2-bench && git -C chapter7/tau2-bench checkout --detach 8d005b0e5b9e4af0bc055886fa7f95fc86d1710e` (medium confidence, clone, README L198)
-  - L196: `git clone https://github.com/xlang-ai/OSWorld.git chapter7/OSWorld && git -C chapter7/OSWorld checkout --detach 8365edc975efd0477a0d62444a5beed562ab5a7b`
-  - L197: `git clone https://github.com/SWE-bench/SWE-bench.git chapter7/SWE-bench && git -C chapter7/SWE-bench checkout --detach 5cd4be9fb23971679cbbafe5a0ecade27cef99be`
-  - L198: `git clone https://github.com/sierra-research/tau2-bench.git chapter7/tau2-bench && git -C chapter7/tau2-bench checkout --detach 8d005b0e5b9e4af0bc055886fa7f95fc86d1710e`
-  - L199: `git clone https://github.com/laude-institute/terminal-bench.git chapter7/terminal-bench && git -C chapter7/terminal-bench checkout --detach 8384a179b1b8688f6ea5233a4d9d51218df1ac96`
-
-- [ ] `git clone https://github.com/laude-institute/terminal-bench.git chapter7/terminal-bench && git -C chapter7/terminal-bench checkout --detach 8384a179b1b8688f6ea5233a4d9d51218df1ac96` (medium confidence, clone, README L199)
-  - L197: `git clone https://github.com/SWE-bench/SWE-bench.git chapter7/SWE-bench && git -C chapter7/SWE-bench checkout --detach 5cd4be9fb23971679cbbafe5a0ecade27cef99be`
-  - L198: `git clone https://github.com/sierra-research/tau2-bench.git chapter7/tau2-bench && git -C chapter7/tau2-bench checkout --detach 8d005b0e5b9e4af0bc055886fa7f95fc86d1710e`
-  - L199: `git clone https://github.com/laude-institute/terminal-bench.git chapter7/terminal-bench && git -C chapter7/terminal-bench checkout --detach 8384a179b1b8688f6ea5233a4d9d51218df1ac96`
-  - L200: ``
-
-- [ ] `git clone https://github.com/bojieli/minimind.git chapter8/MiniMind-pretrain/minimind && git -C chapter8/MiniMind-pretrain/minimind fetch origin 8bdc5d97d5845a8c1ac2ed56a5b8b4c0d0fb0795 && git -C chapter8/MiniMind-pretrain/minimind checkout --detach 8bdc5d97d5845a8c1ac2ed56a5b8b4c0d0fb0795 && test "$(git -C chapter8/MiniMind-pretrain/minimind rev-parse HEAD)" = "8bdc5d97d5845a8c1ac2ed56a5b8b4c0d0fb0795"` (medium confidence, clone, README L202)
-  - L200: ``
-  - L201: `# 第 8 章 · 训练框架（bojieli/* 为本书适配的分支）`
-  - L202: `git clone https://github.com/bojieli/minimind.git chapter8/MiniMind-pretrain/minimind && git -C chapter8/MiniMind-pretrain/minimind fetch origin 8bdc5d97d5845a8c1ac2ed56a5b8b4c0d0fb0795 && git -C chap`
-  - L203: `git clone https://github.com/bojieli/minimind-v.git chapter8/MiniMind-pretrain/minimind-v && git -C chapter8/MiniMind-pretrain/minimind-v fetch origin ead791c530fa5f9a3549dbfe9e11ec732d18d2e5 && git -`
-
-- [ ] `git clone https://github.com/bojieli/minimind-v.git chapter8/MiniMind-pretrain/minimind-v && git -C chapter8/MiniMind-pretrain/minimind-v fetch origin ead791c530fa5f9a3549dbfe9e11ec732d18d2e5 && git -C chapter8/MiniMind-pretrain/minimind-v checkout --detach ead791c530fa5f9a3549dbfe9e11ec732d18d2e5 && test "$(git -C chapter8/MiniMind-pretrain/minimind-v rev-parse HEAD)" = "ead791c530fa5f9a3549dbfe9e11ec732d18d2e5"` (medium confidence, clone, README L203)
-  - L201: `# 第 8 章 · 训练框架（bojieli/* 为本书适配的分支）`
-  - L202: `git clone https://github.com/bojieli/minimind.git chapter8/MiniMind-pretrain/minimind && git -C chapter8/MiniMind-pretrain/minimind fetch origin 8bdc5d97d5845a8c1ac2ed56a5b8b4c0d0fb0795 && git -C chap`
-  - L203: `git clone https://github.com/bojieli/minimind-v.git chapter8/MiniMind-pretrain/minimind-v && git -C chapter8/MiniMind-pretrain/minimind-v fetch origin ead791c530fa5f9a3549dbfe9e11ec732d18d2e5 && git -`
-  - L204: `git clone https://github.com/bojieli/AdaptThink.git chapter8/AdaptThink-original && git -C chapter8/AdaptThink-original checkout --detach 0033ad172dd53ac64004b763477407014f21b838  # 实验 8-10`
-
-- [ ] `git clone https://github.com/bojieli/AdaptThink.git chapter8/AdaptThink-original && git -C chapter8/AdaptThink-original checkout --detach 0033ad172dd53ac64004b763477407014f21b838` (medium confidence, clone, README L204)
-  - L202: `git clone https://github.com/bojieli/minimind.git chapter8/MiniMind-pretrain/minimind && git -C chapter8/MiniMind-pretrain/minimind fetch origin 8bdc5d97d5845a8c1ac2ed56a5b8b4c0d0fb0795 && git -C chap`
-  - L203: `git clone https://github.com/bojieli/minimind-v.git chapter8/MiniMind-pretrain/minimind-v && git -C chapter8/MiniMind-pretrain/minimind-v fetch origin ead791c530fa5f9a3549dbfe9e11ec732d18d2e5 && git -`
-  - L204: `git clone https://github.com/bojieli/AdaptThink.git chapter8/AdaptThink-original && git -C chapter8/AdaptThink-original checkout --detach 0033ad172dd53ac64004b763477407014f21b838  # 实验 8-10`
-  - L205: `git clone https://github.com/bojieli/SFTvsRL.git chapter8/SFTvsRL && git -C chapter8/SFTvsRL checkout --detach fef0a4a3367260a0934be1e40b01e4021698e023  # 实验 8-11、8-12`
-
-- [ ] `git clone https://github.com/bojieli/SFTvsRL.git chapter8/SFTvsRL && git -C chapter8/SFTvsRL checkout --detach fef0a4a3367260a0934be1e40b01e4021698e023` (medium confidence, clone, README L205)
-  - L203: `git clone https://github.com/bojieli/minimind-v.git chapter8/MiniMind-pretrain/minimind-v && git -C chapter8/MiniMind-pretrain/minimind-v fetch origin ead791c530fa5f9a3549dbfe9e11ec732d18d2e5 && git -`
-  - L204: `git clone https://github.com/bojieli/AdaptThink.git chapter8/AdaptThink-original && git -C chapter8/AdaptThink-original checkout --detach 0033ad172dd53ac64004b763477407014f21b838  # 实验 8-10`
-  - L205: `git clone https://github.com/bojieli/SFTvsRL.git chapter8/SFTvsRL && git -C chapter8/SFTvsRL checkout --detach fef0a4a3367260a0934be1e40b01e4021698e023  # 实验 8-11、8-12`
-  - L206: `git clone https://github.com/bojieli/AWorld.git chapter8/AWorld && git -C chapter8/AWorld checkout --detach a52d61d6d483e66b22ef16970eae5bbf4f4ab2ec  # 实验 8-15`
-
-- [ ] `git clone https://github.com/bojieli/AWorld.git chapter8/AWorld && git -C chapter8/AWorld checkout --detach a52d61d6d483e66b22ef16970eae5bbf4f4ab2ec` (medium confidence, clone, README L206)
-  - L204: `git clone https://github.com/bojieli/AdaptThink.git chapter8/AdaptThink-original && git -C chapter8/AdaptThink-original checkout --detach 0033ad172dd53ac64004b763477407014f21b838  # 实验 8-10`
-  - L205: `git clone https://github.com/bojieli/SFTvsRL.git chapter8/SFTvsRL && git -C chapter8/SFTvsRL checkout --detach fef0a4a3367260a0934be1e40b01e4021698e023  # 实验 8-11、8-12`
-  - L206: `git clone https://github.com/bojieli/AWorld.git chapter8/AWorld && git -C chapter8/AWorld checkout --detach a52d61d6d483e66b22ef16970eae5bbf4f4ab2ec  # 实验 8-15`
-  - L207: `git clone https://github.com/bojieli/verl.git chapter8/verl && git -C chapter8/verl checkout --detach 1593fc3a8cf894debdc3dece2a23ed739c282789  # 实验 8-14 ReTool 配方；8-15 训练后端`
-
-- [ ] `git clone https://github.com/bojieli/verl.git chapter8/verl && git -C chapter8/verl checkout --detach 1593fc3a8cf894debdc3dece2a23ed739c282789` (medium confidence, clone, README L207)
-  - L205: `git clone https://github.com/bojieli/SFTvsRL.git chapter8/SFTvsRL && git -C chapter8/SFTvsRL checkout --detach fef0a4a3367260a0934be1e40b01e4021698e023  # 实验 8-11、8-12`
-  - L206: `git clone https://github.com/bojieli/AWorld.git chapter8/AWorld && git -C chapter8/AWorld checkout --detach a52d61d6d483e66b22ef16970eae5bbf4f4ab2ec  # 实验 8-15`
-  - L207: `git clone https://github.com/bojieli/verl.git chapter8/verl && git -C chapter8/verl checkout --detach 1593fc3a8cf894debdc3dece2a23ed739c282789  # 实验 8-14 ReTool 配方；8-15 训练后端`
-  - L208: `git clone https://github.com/bojieli/SandboxFusion.git chapter8/SandboxFusion && git -C chapter8/SandboxFusion fetch origin 4a0d573ebd64c98234c190a9d1d49e4276199a0c && git -C chapter8/SandboxFusion ch`
-
-- [ ] `git clone https://github.com/bojieli/SandboxFusion.git chapter8/SandboxFusion && git -C chapter8/SandboxFusion fetch origin 4a0d573ebd64c98234c190a9d1d49e4276199a0c && git -C chapter8/SandboxFusion checkout --detach 4a0d573ebd64c98234c190a9d1d49e4276199a0c && test "$(git -C chapter8/SandboxFusion rev-parse HEAD)" = "4a0d573ebd64c98234c190a9d1d49e4276199a0c"` (medium confidence, clone, README L208)
-  - L206: `git clone https://github.com/bojieli/AWorld.git chapter8/AWorld && git -C chapter8/AWorld checkout --detach a52d61d6d483e66b22ef16970eae5bbf4f4ab2ec  # 实验 8-15`
-  - L207: `git clone https://github.com/bojieli/verl.git chapter8/verl && git -C chapter8/verl checkout --detach 1593fc3a8cf894debdc3dece2a23ed739c282789  # 实验 8-14 ReTool 配方；8-15 训练后端`
-  - L208: `git clone https://github.com/bojieli/SandboxFusion.git chapter8/SandboxFusion && git -C chapter8/SandboxFusion fetch origin 4a0d573ebd64c98234c190a9d1d49e4276199a0c && git -C chapter8/SandboxFusion ch`
-  - L209: `git clone https://github.com/thinking-machines-lab/tinker-cookbook.git chapter8/tinker-cookbook && git -C chapter8/tinker-cookbook checkout --detach fc8449187041cf102905f3f751e6d2eac7f9f754`
-
-- [ ] `git clone https://github.com/thinking-machines-lab/tinker-cookbook.git chapter8/tinker-cookbook && git -C chapter8/tinker-cookbook checkout --detach fc8449187041cf102905f3f751e6d2eac7f9f754` (medium confidence, clone, README L209)
-  - L207: `git clone https://github.com/bojieli/verl.git chapter8/verl && git -C chapter8/verl checkout --detach 1593fc3a8cf894debdc3dece2a23ed739c282789  # 实验 8-14 ReTool 配方；8-15 训练后端`
-  - L208: `git clone https://github.com/bojieli/SandboxFusion.git chapter8/SandboxFusion && git -C chapter8/SandboxFusion fetch origin 4a0d573ebd64c98234c190a9d1d49e4276199a0c && git -C chapter8/SandboxFusion ch`
-  - L209: `git clone https://github.com/thinking-machines-lab/tinker-cookbook.git chapter8/tinker-cookbook && git -C chapter8/tinker-cookbook checkout --detach fc8449187041cf102905f3f751e6d2eac7f9f754`
-  - L210: `git clone https://github.com/19PINE-AI/rlvp.git chapter8/RLVP/rlvp && git -C chapter8/RLVP/rlvp fetch origin 1ad30bc7e338911fb733739393d92c420f4d8bee && git -C chapter8/RLVP/rlvp checkout --detach 1ad`
-
-- [ ] `git clone https://github.com/19PINE-AI/rlvp.git chapter8/RLVP/rlvp && git -C chapter8/RLVP/rlvp fetch origin 1ad30bc7e338911fb733739393d92c420f4d8bee && git -C chapter8/RLVP/rlvp checkout --detach 1ad30bc7e338911fb733739393d92c420f4d8bee && test "$(git -C chapter8/RLVP/rlvp rev-parse HEAD)" = "1ad30bc7e338911fb733739393d92c420f4d8bee"` (medium confidence, clone, README L210)
-  - L208: `git clone https://github.com/bojieli/SandboxFusion.git chapter8/SandboxFusion && git -C chapter8/SandboxFusion fetch origin 4a0d573ebd64c98234c190a9d1d49e4276199a0c && git -C chapter8/SandboxFusion ch`
-  - L209: `git clone https://github.com/thinking-machines-lab/tinker-cookbook.git chapter8/tinker-cookbook && git -C chapter8/tinker-cookbook checkout --detach fc8449187041cf102905f3f751e6d2eac7f9f754`
-  - L210: `git clone https://github.com/19PINE-AI/rlvp.git chapter8/RLVP/rlvp && git -C chapter8/RLVP/rlvp fetch origin 1ad30bc7e338911fb733739393d92c420f4d8bee && git -C chapter8/RLVP/rlvp checkout --detach 1ad`
-  - L211: `git clone https://github.com/PRIME-RL/SimpleVLA-RL.git chapter8/SimpleVLA-RL/SimpleVLA-RL && git -C chapter8/SimpleVLA-RL/SimpleVLA-RL checkout --detach 7c51662df27b586f9e8a1ab35fcf849f2b8852f9  # 实验 `
-
-- [ ] `git clone https://github.com/PRIME-RL/SimpleVLA-RL.git chapter8/SimpleVLA-RL/SimpleVLA-RL && git -C chapter8/SimpleVLA-RL/SimpleVLA-RL checkout --detach 7c51662df27b586f9e8a1ab35fcf849f2b8852f9` (medium confidence, clone, README L211)
-  - L209: `git clone https://github.com/thinking-machines-lab/tinker-cookbook.git chapter8/tinker-cookbook && git -C chapter8/tinker-cookbook checkout --detach fc8449187041cf102905f3f751e6d2eac7f9f754`
-  - L210: `git clone https://github.com/19PINE-AI/rlvp.git chapter8/RLVP/rlvp && git -C chapter8/RLVP/rlvp fetch origin 1ad30bc7e338911fb733739393d92c420f4d8bee && git -C chapter8/RLVP/rlvp checkout --detach 1ad`
-  - L211: `git clone https://github.com/PRIME-RL/SimpleVLA-RL.git chapter8/SimpleVLA-RL/SimpleVLA-RL && git -C chapter8/SimpleVLA-RL/SimpleVLA-RL checkout --detach 7c51662df27b586f9e8a1ab35fcf849f2b8852f9  # 实验 `
-  - L212: ``
-
-- [ ] `git clone https://github.com/19PINE-AI/TalkAct.git chapter10/use-computer-while-calling && git -C chapter10/use-computer-while-calling fetch origin 7d70007f72d45ddfc1a14e8e229b6d444e4919a2 && git -C chapter10/use-computer-while-calling checkout --detach 7d70007f72d45ddfc1a14e8e229b6d444e4919a2 && test "$(git -C chapter10/use-computer-while-calling rev-parse HEAD)" = "7d70007f72d45ddfc1a14e8e229b6d444e4919a2"` (medium confidence, clone, README L214)
-  - L212: ``
-  - L213: `# 第 10 章 · 双 Agent 架构（已独立为 TalkAct 项目）+ 斯坦福 AI 小镇`
-  - L214: `git clone https://github.com/19PINE-AI/TalkAct.git chapter10/use-computer-while-calling && git -C chapter10/use-computer-while-calling fetch origin 7d70007f72d45ddfc1a14e8e229b6d444e4919a2 && git -C c`
-  - L215: `git clone https://github.com/joonspk-research/generative_agents.git chapter10/generative_agents && git -C chapter10/generative_agents fetch origin fe05a71d3e4ed7d10bf68aa4eda6dd995ec070f4 && git -C ch`
-
-- [ ] `git clone https://github.com/joonspk-research/generative_agents.git chapter10/generative_agents && git -C chapter10/generative_agents fetch origin fe05a71d3e4ed7d10bf68aa4eda6dd995ec070f4 && git -C chapter10/generative_agents checkout --detach fe05a71d3e4ed7d10bf68aa4eda6dd995ec070f4 && test "$(git -C chapter10/generative_agents rev-parse HEAD)" = "fe05a71d3e4ed7d10bf68aa4eda6dd995ec070f4"` (medium confidence, clone, README L215)
-  - L213: `# 第 10 章 · 双 Agent 架构（已独立为 TalkAct 项目）+ 斯坦福 AI 小镇`
-  - L214: `git clone https://github.com/19PINE-AI/TalkAct.git chapter10/use-computer-while-calling && git -C chapter10/use-computer-while-calling fetch origin 7d70007f72d45ddfc1a14e8e229b6d444e4919a2 && git -C c`
-  - L215: `git clone https://github.com/joonspk-research/generative_agents.git chapter10/generative_agents && git -C chapter10/generative_agents fetch origin fe05a71d3e4ed7d10bf68aa4eda6dd995ec070f4 && git -C ch`
-  - L216: `````
-
-
-### EverMind-AI/EverOS
-
-- Repo: <https://github.com/EverMind-AI/EverOS>
-- Commands: 2
-
-- [ ] `brew install --cask libreoffice` (medium confidence, install, README L334)
-  - L332: ``
-  - L333: ````bash`
-  - L334: `brew install --cask libreoffice              # macOS`
-  - L335: `sudo apt-get install -y libreoffice          # Debian / Ubuntu`
-
-- [ ] `git clone https://github.com/EverMind-AI/EverOS.git` (medium confidence, clone, README L341)
-  - L339: ``
-  - L340: ````bash`
-  - L341: `git clone https://github.com/EverMind-AI/EverOS.git`
-  - L342: `cd EverOS`
-
-
-### HKUDS/DeepTutor
-
-- Repo: <https://github.com/HKUDS/DeepTutor>
-- Commands: 9
-
-- [ ] `docker run --rm --name deeptutor -p 127.0.0.1:3782:3782 -v deeptutor-data:/app/data ghcr.io/hkuds/deeptutor:latest` (medium confidence, run, README L283)
-  - L281: ``
-  - L282: ````bash`
-  - L283: `docker run --rm --name deeptutor \`
-  - L284: `-p 127.0.0.1:3782:3782 \`
-
-- [ ] `python -m pip install -U "deeptutor[full]"` (medium confidence, install, README L300)
-  - L298: ````bash`
-  - L299: `mkdir -p my-deeptutor && cd my-deeptutor`
-  - L300: `python -m pip install -U "deeptutor[full]"`
-  - L301: `deeptutor init     # ports + LLM provider + optional embedding/search`
-
-- [ ] `git clone --branch dev https://github.com/HKUDS/DeepTutor.git` (medium confidence, clone, README L317)
-  - L315: ``
-  - L316: ````bash`
-  - L317: `git clone --branch dev https://github.com/HKUDS/DeepTutor.git`
-  - L318: `cd DeepTutor`
-
-- [ ] `python -m pip install --upgrade pip` (medium confidence, install, README L320)
-  - L318: `cd DeepTutor`
-  - L319: `python3 -m venv .venv && source .venv/bin/activate`
-  - L320: `python -m pip install --upgrade pip`
-  - L321: `python -m pip install -r requirements/full.txt`
-
-- [ ] `python -m pip install -r requirements/full.txt` (medium confidence, install, README L321)
-  - L319: `python3 -m venv .venv && source .venv/bin/activate`
-  - L320: `python -m pip install --upgrade pip`
-  - L321: `python -m pip install -r requirements/full.txt`
-  - L322: `python -m pip install -e . --no-deps`
-
-- [ ] `python -m pip install -e . --no-deps` (medium confidence, install, README L322)
-  - L320: `python -m pip install --upgrade pip`
-  - L321: `python -m pip install -r requirements/full.txt`
-  - L322: `python -m pip install -e . --no-deps`
-  - L323: `( cd web && npm ci --legacy-peer-deps )`
-
-- [ ] `python -m pip install -U deeptutor` (medium confidence, install, README L339)
-  - L337: ````bash`
-  - L338: `mkdir -p my-deeptutor && cd my-deeptutor`
-  - L339: `python -m pip install -U deeptutor`
-  - L340: `deeptutor init --cli`
-
-- [ ] `python -m pip install -r requirements/full.txt` (medium confidence, install, README L828)
-  - L826: ``
-  - L827: ````bash`
-  - L828: `python -m pip install -r requirements/full.txt`
-  - L829: `python -m pip install -e . --no-deps`
-
-- [ ] `python -m pip install -e . --no-deps` (medium confidence, install, README L829)
-  - L827: ````bash`
-  - L828: `python -m pip install -r requirements/full.txt`
-  - L829: `python -m pip install -e . --no-deps`
-  - L830: `````
-
-
-### headroomlabs-ai/headroom
-
-- Repo: <https://github.com/headroomlabs-ai/headroom>
-- Commands: 11
-
-- [ ] `pip install headroom-ai` (medium confidence, install, README L48)
-  - L46: ``
-  - L47: ````bash`
-  - L48: `pip install headroom-ai`
-  - L49: `````
-
-- [ ] `pip install "headroom-ai[all]"` (medium confidence, install, README L133)
-  - L131: `# 1 — Install`
-  - L132: `uv tool install --python 3.13 "headroom-ai[all]"  # CLI in a self-contained env`
-  - L133: `pip install "headroom-ai[all]"                    # Python — ships the `headroom` CLI`
-  - L134: `npm install headroom-ai                           # TypeScript SDK only — no CLI`
-
-- [ ] `npm install headroom-ai` (medium confidence, install, README L134)
-  - L132: `uv tool install --python 3.13 "headroom-ai[all]"  # CLI in a self-contained env`
-  - L133: `pip install "headroom-ai[all]"                    # Python — ships the `headroom` CLI`
-  - L134: `npm install headroom-ai                           # TypeScript SDK only — no CLI`
-  - L135: ``
-
-- [ ] `pip install "headroom-ai[proxy]"` (medium confidence, install, README L378)
-  - L376: ``
-  - L377: ````bash`
-  - L378: `pip install "headroom-ai[proxy]"`
-  - L379: `headroom wrap vscode-claude`
-
-- [ ] `pip install "headroom-ai[all]"` (high confidence, install, README L485)
-  - L483: ````bash`
-  - L484: `uv tool install --python 3.13 "headroom-ai[all]"  # CLI, isolated app env`
-  - L485: `pip install "headroom-ai[all]"                    # CLI/proxy feature set`
-  - L486: `npm install headroom-ai                           # TypeScript SDK (library only)`
-
-- [ ] `npm install headroom-ai` (high confidence, install, README L486)
-  - L484: `uv tool install --python 3.13 "headroom-ai[all]"  # CLI, isolated app env`
-  - L485: `pip install "headroom-ai[all]"                    # CLI/proxy feature set`
-  - L486: `npm install headroom-ai                           # TypeScript SDK (library only)`
-  - L487: `docker pull ghcr.io/headroomlabs-ai/headroom:latest`
-
-- [ ] `docker pull ghcr.io/headroomlabs-ai/headroom:latest` (high confidence, install, README L487)
-  - L485: `pip install "headroom-ai[all]"                    # CLI/proxy feature set`
-  - L486: `npm install headroom-ai                           # TypeScript SDK (library only)`
-  - L487: `docker pull ghcr.io/headroomlabs-ai/headroom:latest`
-  - L488: `````
-
-- [ ] `brew install python@3.13` (high confidence, install, README L515)
-  - L513: ``
-  - L514: ````bash`
-  - L515: `brew install python@3.13  # if 3.13 is not already available`
-  - L516: `uv tool install --python 3.13 "headroom-ai[all]"`
-
-- [ ] `brew install onnxruntime` (high confidence, install, README L613)
-  - L611: ``
-  - L612: ````bash`
-  - L613: `brew install onnxruntime`
-  - L614: `ORT_STRATEGY=system \`
-
-- [ ] `pip install "headroom-ai[all]"` (high confidence, install, README L617)
-  - L615: `ORT_LIB_LOCATION="$(brew --prefix onnxruntime)/lib" \`
-  - L616: `ORT_PREFER_DYNAMIC_LINK=1 \`
-  - L617: `pip install "headroom-ai[all]"`
-  - L618: ``
-
-- [ ] `git clone https://github.com/headroomlabs-ai/headroom.git && cd headroom` (medium confidence, clone, README L730)
-  - L728: ``
-  - L729: ````bash`
-  - L730: `git clone https://github.com/headroomlabs-ai/headroom.git && cd headroom`
-  - L731: `uv sync --extra dev && uv run pytest`
-
-
-### didilili/ai-agents-from-zero
-
-- Repo: <https://github.com/didilili/ai-agents-from-zero>
-- Commands: 2
-
-- [ ] `git clone https://github.com/didilili/ai-agents-from-zero.git` (medium confidence, clone, README L201)
-  - L199: ``
-  - L200: ````bash`
-  - L201: `git clone https://github.com/didilili/ai-agents-from-zero.git`
-  - L202: `cd ai-agents-from-zero`
-
-- [ ] `pip install -r requirements.txt` (medium confidence, install, README L211)
-  - L209: `source .venv/bin/activate          # macOS/Linux`
-  - L210: `# .venv\Scripts\activate           # Windows CMD`
-  - L211: `pip install -r requirements.txt`
-  - L212: `````
-
-
-### Osmantic/ODS
-
-- Repo: <https://github.com/Osmantic/ODS>
-- Commands: 2
-
-- [ ] `git clone https://github.com/Osmantic/ODS.git` (medium confidence, clone, README L215)
-  - L213: ``
-  - L214: ````bash`
-  - L215: `git clone https://github.com/Osmantic/ODS.git`
-  - L216: `cd ODS/ods`
-
-- [ ] `git clone https://github.com/Osmantic/ODS.git ~/src/ODS` (medium confidence, clone, README L255)
-  - L253: ``
-  - L254: ````bash`
-  - L255: `git clone https://github.com/Osmantic/ODS.git ~/src/ODS`
-  - L256: `cd ~/src/ODS/ods`
-
-
-### rocketride-org/rocketride-server
-
-- Repo: <https://github.com/rocketride-org/rocketride-server>
-- Commands: 2
-
-- [ ] `pip install rocketride` (medium confidence, install, README L124)
-  - L122: ``
-  - L123: ````bash`
-  - L124: `pip install rocketride`
-  - L125: `````
-
-- [ ] `docker pull ghcr.io/rocketride-org/rocketride-engine:latest` (high confidence, install, README L188)
-  - L186: ``
-  - L187: ````bash`
-  - L188: `docker pull ghcr.io/rocketride-org/rocketride-engine:latest`
-  - L189: `docker create --name rocketride-engine -p 127.0.0.1:5565:5565 ghcr.io/rocketride-org/rocketride-engine:latest`
-
-
-### Graphify-Labs/graphify
-
-- Repo: <https://github.com/Graphify-Labs/graphify>
-- Commands: 2
-
-- [ ] `brew install python@3.12 uv` (medium confidence, install, README L197)
-  - L195: `**macOS quick install (Homebrew):**`
-  - L196: ````bash`
-  - L197: `brew install python@3.12 uv`
-  - L198: `````
-
-- [ ] `pip install graphifyy` (high confidence, install, README L229) **⚠ caution**
-  - L227: `uv tool install graphifyy   # recommended, isolated env (if 'graphify' isn't found after, run: uv tool update-shell)`
-  - L228: `pipx install graphifyy      # alternative`
-  - L229: `pip install graphifyy       # may need PATH setup, see Troubleshooting below`
-  - L230: `````
-
-
-### virgiliojr94/book-to-skill
-
-- Repo: <https://github.com/virgiliojr94/book-to-skill>
-- Commands: 1
-
-- [ ] `git clone https://github.com/virgiliojr94/book-to-skill.git ~/.claude/skills/book-to-skill` (high confidence, clone, README L163)
-  - L161: ``
-  - L162: `# Or manually — clone into your skills folder (registers /book-to-skill):`
-  - L163: `git clone https://github.com/virgiliojr94/book-to-skill.git ~/.claude/skills/book-to-skill`
-  - L164: `# (Copilot CLI: ~/.copilot/skills/ · Amp/cross-agent: ~/.agents/skills/)`
-
-
-### WenyuChiou/awesome-agentic-ai-zh
-
-- Repo: <https://github.com/WenyuChiou/awesome-agentic-ai-zh>
-- Commands: 1
-
-- [ ] `git clone https://github.com/WenyuChiou/awesome-agentic-ai-zh.git` (medium confidence, clone, README L63)
-  - L61: ``
-  - L62: ````powershell`
-  - L63: `git clone https://github.com/WenyuChiou/awesome-agentic-ai-zh.git`
-  - L64: `cd awesome-agentic-ai-zh`
-
-
-### StarTrail-org/PixelRAG
-
-- Repo: <https://github.com/StarTrail-org/PixelRAG>
-- Commands: 7
-
-- [ ] `pip install pixelrag` (medium confidence, install, README L40)
-  - L38: ``
-  - L39: ````bash`
-  - L40: `pip install pixelrag`
-  - L41: `````
-
-- [ ] `pip install 'pixelrag[serve]'` (medium confidence, install, README L144)
-  - L142: ``
-  - L143: ````bash`
-  - L144: `pip install 'pixelrag[serve]'`
-  - L145: ``
-
-- [ ] `pip install 'pixelrag[index]'` (high confidence, install, README L164)
-  - L162: ``
-  - L163: ````bash`
-  - L164: `pip install 'pixelrag[index]'`
-  - L165: ``
-
-- [ ] `pip install 'pixelrag[index,pdf]'` (high confidence, install, README L193)
-  - L191: ``
-  - L192: ````bash`
-  - L193: `pip install 'pixelrag[index,pdf]'`
-  - L194: ``
-
-- [ ] `pip install 'pixelrag[embed]'` (medium confidence, install, README L264)
-  - L262: ``
-  - L263: ````bash`
-  - L264: `pip install 'pixelrag[embed]'`
-  - L265: ``
-
-- [ ] `pip install 'pixelrag[serve,qdrant]'` (medium confidence, install, README L291)
-  - L289: ``
-  - L290: ````bash`
-  - L291: `pip install 'pixelrag[serve,qdrant]'   # or 'pixelrag[index,qdrant]'`
-  - L292: ``
-
-- [ ] `docker compose up --build` (high confidence, run, README L339)
-  - L337: `pixelrag index build   # writes index.faiss, metadata.npz and articles.json to ./data/index`
-  - L338: ``
-  - L339: `docker compose up --build`
-  - L340: `# then query it`
-
-
-### ForeactLabs/OpenExecutive
-
-- Repo: <https://github.com/ForeactLabs/OpenExecutive>
-- Commands: 3
-
-- [ ] `git clone https://github.com/ForeactLabs/OpenExecutive.git` (high confidence, clone, README L134)
-  - L132: ````bash`
-  - L133: `# Clone the repo`
-  - L134: `git clone https://github.com/ForeactLabs/OpenExecutive.git`
-  - L135: `cd OpenExecutive`
-
-- [ ] `make install` (high confidence, install, README L138)
-  - L136: ``
-  - L137: `# Install the backend and web app dependencies`
-  - L138: `make install`
-  - L139: ``
-
-- [ ] `npm install` (high confidence, install, README L189)
-  - L187: `# In a second terminal`
-  - L188: `cd packages/ui`
-  - L189: `npm install`
-  - L190: `npm run dev`
+- [ ] `git clone https://github.com/paperclipai/paperclip.git` (high confidence, clone, README L414)
+  - L412: ``
+  - L413: ````bash`
+  - L414: `git clone https://github.com/paperclipai/paperclip.git`
+  - L415: `cd paperclip`
+
+- [ ] `pnpm install` (high confidence, install, README L416)
+  - L414: `git clone https://github.com/paperclipai/paperclip.git`
+  - L415: `cd paperclip`
+  - L416: `pnpm install`
+  - L417: `pnpm dev`
 
 ---
 
 ## Sign-off
 
 - Reviewed by: ______________________  Date: ____________
-- Repos reviewed: ______ / 46
-- Commands judged correct: ______ / 184
+- Repos reviewed: ______ / 50
+- Commands judged correct: ______ / 158
 - False positives / notes:
   - 

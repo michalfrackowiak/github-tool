@@ -70,6 +70,6 @@ After the fixes, a fresh forced extraction over the same DB produced 190 command
 
 ## Limitations and manual follow-up
 
-- This was an agent semantic review with an automated source-line check, not an independent human review. A human should still spot-check a sample if semantic confidence is business-critical (e.g. commands that are examples for a sub-component). To make that concrete, `scripts/make_spotcheck.py` generates a tick-box review packet at [`docs/extraction-spotcheck.md`](extraction-spotcheck.md) (46 repos / 184 commands, each with its cited README line and context); only the human sign-off remains.
+- This was an agent semantic review with an automated source-line check, not an independent human review. A human should still spot-check a sample if semantic confidence is business-critical (e.g. commands that are examples for a sub-component). To make that concrete, `scripts/make_spotcheck.py` generates a tick-box review packet at [`docs/extraction-spotcheck.md`](extraction-spotcheck.md) (50 language-stratified repos / 158 commands / 4 near caution words, each with its cited README line and context); only the human sign-off remains.
 - The optional LLM pass (strict JSON schema, source-line clamping, merge with heuristics) is implemented and tested with mocked responses. It was not run live because no LLM endpoint/key was configured.
 - Re-extraction is keyed on the README SHA-256 **and** a non-null `extracted_at`, so a crawler-written hash cannot suppress the first extraction. Use `--force` to re-run after parser changes.

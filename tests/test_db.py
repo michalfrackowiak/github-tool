@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-from github_tool.db import SCHEMA_VERSION, Database
+from github_tool.db import SCHEMA_VERSION
 from github_tool.models import Repo, StarDay
 
 

@@ -1,6 +1,6 @@
 # GitHub-Tool — Build Roadmap
 
-**Status:** Phases 0–10 implemented and validated. One item remains operator-only (creating a fine-grained read-only token); an independent human spot-check of extraction is optional — an agent semantic review covered all 190 extracted commands. Every other checkbox below is complete. Seven independent reviewer passes plus a maintainer self-review are recorded in `docs/review-fixes.md`; 200 tests pass with no skips/xfails. **Approach:** link-out views for instant answers first (Phases 0–1), then a local index and crawler for offline use and trend windows (Phases 2–7). Full background, architecture, and constraints: see `context.md`.
+**Status:** Phases 0–10 implemented and validated. The read-only token is in place and authenticated; switching it to a fine-grained least-privilege token is an operator recommendation. An independent human spot-check of extraction is optional — an agent semantic review covered all 190 extracted commands. Every other checkbox below is complete. Seven independent reviewer passes plus a maintainer self-review are recorded in `docs/review-fixes.md`; 208 tests pass with no skips/xfails. **Approach:** link-out views for instant answers first (Phases 0–1), then a local index and crawler for offline use and trend windows (Phases 2–7). Full background, architecture, and constraints: see `context.md`.
 
 | Phase | Focus | Estimate |
 |---|---|---|
@@ -87,14 +87,14 @@
 - [x] Store each extracted item with its source line and a confidence flag. — 190/190 live command lines verified against their README line.
 - [x] Re-run extraction only when the README hash changes. — Requires both matching hash and `extracted_at`, so crawler-written hashes do not suppress first extraction.
 - [x] Semantically review a sample of extracted commands. — All 190 commands across 47 repos were reviewed with `scripts/audit_extraction.py`; 6 template commands were filtered and 4 multi-line commands joined.
-- [ ] Independent human spot-check of ~50 repos. — **Optional human action** for business-critical use; the agent review is recorded in `docs/extraction-validation.md`. A ready-to-tick review packet (46 repos / 184 commands) is generated at [`docs/extraction-spotcheck.md`](docs/extraction-spotcheck.md) via `scripts/make_spotcheck.py`; only the human sign-off remains.
+- [ ] Independent human spot-check of ~50 repos. — **Optional human action** for business-critical use; the agent review is recorded in `docs/extraction-validation.md`. A ready-to-tick, language-stratified review packet (50 repos / 158 commands / 4 near caution words) is generated at [`docs/extraction-spotcheck.md`](docs/extraction-spotcheck.md) via `scripts/make_spotcheck.py --stratify` (or `scripts/audit_extraction.py --markdown --stratify`, which uses the same renderer); only the human sign-off remains.
 
 **Done when:** a hand-check of ~50 repos looks trustworthy. — Automated line check 190/190 and recorded agent semantic review; see `docs/extraction-validation.md`.
 
 ## Phase 7 — Hardening (~2 days)
 
 - [x] Add a scheduler (cron or systemd). — Also GitHub Actions with DB cache restore.
-- [x] Add tests against recorded API fixtures. - 200 tests pass; `httpx.MockTransport` fixtures cover retry/backoff, ETag/304, README, star history, GraphQL, OSS Insight, and Trending HTML.
+- [x] Add tests against recorded API fixtures. - 208 tests pass; `httpx.MockTransport` fixtures cover retry/backoff, ETag/304, README, star history, GraphQL, OSS Insight, and Trending HTML.
 - [x] Add logging and token hygiene. — Token redaction, `Settings` repr excludes secrets, httpx noise suppressed.
 - [x] If scheduling via GitHub Actions, use a PAT — the built-in `GITHUB_TOKEN` is capped at 1,000 requests/hour/repository. — `secrets.GH_TOOL_TOKEN` with an explicit warning.
 - [x] Add a short doc of rate limits and policy rules for future reference. — `docs/rate-limits.md`.
@@ -107,7 +107,7 @@ Derived from gaps and risks in `context.md` that were not needed for Phases 0–
 - [x] Add a cheap inflated-star sanity filter: optional max fork/star ratio on trend ranking (CLI + web + exports), defaulting to no filtering. — `--max-fork-ratio` / `max_fork_ratio`, with `fork_ratio` added to exports.
 - [x] Add a web JSON export endpoint sharing the same filters as the CSV/Markdown exports, for offline analysis. — `/export.json`, linked from the search and trends views.
 - [x] Verify index usage for bulk trend reads and add indexes only where a scan remains. — `EXPLAIN QUERY PLAN` shows both bulk queries using the existing `(repo_id, day)` primary-key indexes on `star_daily` and `snapshots`; no redundant index added.
-- [x] Document the new options and refresh validation/test-count evidence. — README CLI table/examples, `docs/live-validation.md` Phase 8 section, with counts kept current (200 tests after Phase 10).
+- [x] Document the new options and refresh validation/test-count evidence. — README CLI table/examples, `docs/live-validation.md` Phase 8 section, with counts kept current (208 tests after Phase 10).
 
 **Done when:** all Phase 8 boxes are checked and the full pytest suite passes with no skipped/xfailed tests.
 
@@ -115,7 +115,7 @@ Derived from gaps and risks in `context.md` that were not needed for Phases 0–
 
 - [x] Add an `in:readme` checkbox to web search for API-source queries, matching the CLI/crawl option. — Preserved in sort and export links.
 - [x] Add an optional "active within N days" filter to trend ranking (CLI + web + exports) based on each repo's `pushed_at`, as a cheap real-activity proxy. — `--active-within` / `active_within`.
-- [x] Add regression tests and update user-facing docs for both options. — 200 tests pass; README and validation notes updated.
+- [x] Add regression tests and update user-facing docs for both options. — 208 tests pass; README and validation notes updated.
 
 **Done when:** all Phase 9 boxes are checked and the full pytest suite passes with no skipped/xfailed tests.
 
@@ -125,6 +125,6 @@ GitHub excludes forks from repository search unless `fork:true` is present; the 
 
 - [x] Add `include_forks` to the planner and crawler so `fork:true` reaches every generated slice. — `compose_query()` / `plan_slices()` / `Crawler.plan_profile()` / `Crawler.run()`.
 - [x] Add `--include-forks` to CLI `search` and `crawl`, appending `fork:true` to API queries. — Web search now adds the same qualifier when the checkbox is checked.
-- [x] Add regression tests and update docs. — 200 tests pass; README and validation notes updated.
+- [x] Add regression tests and update docs. — 208 tests pass; README and validation notes updated.
 
 **Done when:** all Phase 10 boxes are checked and the full pytest suite passes with no skipped/xfailed tests.

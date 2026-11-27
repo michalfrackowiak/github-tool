@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import date
 import re
 
-import pytest
 
 from github_tool.keywords import Keyword
 from github_tool.planner import (
