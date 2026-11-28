@@ -117,7 +117,22 @@ The reviewer explicitly cleared `planner.py` slice propagation, `crawler.py` pro
 |---|---|
 | `plan_keyword()` was the one planner entry point that did not accept or forward `in_readme`/`include_forks`, so any caller using it (it is part of the module's public surface and is unit-tested) silently dropped the `in:readme` / `fork:true` qualifiers that `plan_slices()`, `compose_query()`, and `Crawler.plan_profile()` all propagate | `plan_keyword()` now takes `in_readme`/`include_forks` and forwards them to every generated slice; a regression test asserts both qualifiers appear in all slices |
 
-Cross-module re-check confirmed the CLI, web, crawler, and planner agree on `in_readme`, `include_forks`, `fork:true`, and `in:readme`; templates have no `|safe`/autoescape-off and the sparkline escapes its label; `Settings` redacts the token and LLM key; CSV export neutralizes formula injection. No other material defects found; suite is 208 tests, 0 skipped/xfailed.
+Cross-module re-check confirmed the CLI, web, crawler, and planner agree on `in_readme`, `include_forks`, `fork:true`, and `in:readme`; templates have no `|safe`/autoescape-off and the sparkline escapes its label; `Settings` redacts the token and LLM key; CSV export neutralizes formula injection. No other material defects found; suite is 235 tests, 0 skipped/xfailed.
+
+## PR #1 review round (Phase 11)
+
+The PR review recorded zero hard standards violations and these spec/judgement findings, all resolved:
+
+| Finding | Fix |
+|---|---|
+| `POST /crawl` allowed every registered profile (`default` = all keywords × 9 languages), so no curation happened | `WEB_CRAWL_ALLOWED_PROFILES` is now a curated `{"ai", "systems", "web"}` subset in `web/crawl.py`; `default` is rejected with 400 and the UI dropdown shows only curated profiles |
+| Job `phase` was stuck at `crawling` because the heartbeat rewrote the same value | `Crawler.run()` now emits `on_progress("planning" → "crawling" → "finalizing")`; heartbeat preserves the current phase for liveness only, and completion sets `done` |
+| `CrawlSummary.status` was remapped inline in the worker (duplicated status semantics) | `crawl_job_status()` in `web/crawl.py` is the single owner; regression test covers all known and unknown statuses |
+| Crawl options travelled as an untyped `dict[str, Any]` through form, job, runner, and worker | `CrawlRequest` is a frozen dataclass with validated bounds, `from_form()`/`from_dict()`/`as_dict()` conversion, and a regression test for clamping/round-trip |
+| Failed API searches skipped history, conflicting with "every executed search is saved" | Web and CLI now record failed searches with `result_count=0` through shared `search_history.record_best_effort()`; tests assert the entry is created and search errors still surface |
+| Replay regression test only inspected the `/saved` link, never followed it | Test now extracts and GETs the replay URL, asserting the original repo renders; add regression tests for curated profiles and phase advancement |
+
+This round also extracted crawl orchestration from `web/app.py` into `web/crawl.py` (Divergent Change), removing ~120 lines of worker code from the routes module. Suite is 235 tests, 0 skipped/xfailed, 87% coverage.
 
 ## Remaining operator actions (not code defects)
 

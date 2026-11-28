@@ -170,7 +170,18 @@ def test_plan_profile_creates_and_persists_slices(monkeypatch, db, settings):
     assert all(s.keyword == "rag" and s.language == "Python" for s in slices)
     assert len({s.query for s in slices}) == len(slices)
 
-    summary = crawler.run(profile="tiny", fetch_readmes=False, max_slices=1)
+    started: list[str] = []
+    phases: list[str] = []
+    summary = crawler.run(
+        profile="tiny",
+        fetch_readmes=False,
+        max_slices=1,
+        on_run_start=started.append,
+        on_progress=phases.append,
+    )
+    assert started == [summary.run_id]
+    assert phases[:2] == ["planning", "crawling"]
+    assert "finalizing" in phases
     assert summary.slices_total == 2
     assert summary.status == "paused"  # max_slices left work behind
     assert sum(db.slice_counts(summary.run_id).values()) == 2
@@ -243,6 +254,7 @@ def test_duplicate_repo_across_slices_stored_once_with_both_keywords(db, setting
     assert summary.status == "completed"
     assert summary.repos_seen == 2
     assert summary.repos_inserted == 1
+    assert summary.repos_updated == 1
     assert db.count_repos() == 1
     assert db.keyword_counts() == {"rag": 1, "llm": 1}
 
@@ -311,6 +323,51 @@ def test_resume_after_interruption_skips_completed_pages(db, settings):
     assert [page for _, page in client.search_calls] == [2, 3]
     assert db.count_repos() == 3
     assert db.get_run(run_id)["status"] == "completed"
+
+
+def test_web_worker_uses_real_crawler_and_dedupes_by_repo_id(monkeypatch, db, settings):
+    from github_tool.web.app import run_crawl_job
+
+    monkeypatch.setitem(
+        keywords.PROFILES,
+        "tiny",
+        CrawlProfile("tiny", ("rag",), ("Python",), min_stars=20, fetch_readmes=False),
+    )
+    planned = Crawler(settings, db, FakeClient()).plan_profile("tiny")
+    repo = make_repo(77, name="acme/dedupe")
+    client = FakeClient(
+        total_counts={sl.query: 1 for sl in planned},
+        search_results={(sl.query, 1): [repo] for sl in planned},
+    )
+    params = {
+        "profile": "tiny",
+        "max_slices": 2,
+        "max_pages_per_slice": 1,
+        "discovery": "rest",
+        "fetch_readmes": False,
+        "in_readme": False,
+        "include_forks": False,
+    }
+    assert db.claim_crawl_job("web-real", "tiny", params) is not None
+
+    run_crawl_job(
+        settings,
+        "web-real",
+        params,
+        db,
+        client_factory=lambda _settings, _database: client,
+    )
+
+    job = db.get_crawl_job("web-real")
+    assert job["status"] == "completed"
+    summary = job["summary"]
+    assert summary["repos_seen"] == 2
+    assert summary["repos_inserted"] == 1
+    assert summary["repos_updated"] == 1
+    assert db.count_repos() == 1
+    assert db.get_repo(77) is not None
+    assert db.keyword_counts() == {"rag": 1}
+    assert db.active_crawl_job() is None
 
 
 def test_resume_completed_run_returns_already_done(db, settings):

@@ -10,7 +10,9 @@ import re
 from contextlib import contextmanager
 import html
 from pathlib import Path
+import threading
 from typing import Any, Iterator
+import uuid
 from urllib.parse import quote, urlencode
 
 from fastapi import FastAPI, Form, Request
@@ -26,6 +28,16 @@ from ..github import GitHubClient, GitHubError, OfflineError
 from ..keywords import KEYWORDS, LANGUAGES, WINDOW_DAYS, WINDOW_LABELS, WINDOWS, get_keyword
 from ..links import generate_links
 from ..models import Repo, TrendRow
+from ..search_history import normalize_search_params, record_best_effort
+from .crawl import (
+    WEB_CRAWL_ALLOWED_PROFILES,
+    WEB_CRAWL_MAX_PAGES,
+    WEB_CRAWL_MAX_SLICES,
+    CrawlRequest,
+    resolve_job_run,
+    run_crawl_job,
+    utc_now,
+)
 
 BASE_DIR = Path(__file__).parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -187,11 +199,13 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
     settings = settings or Settings()
     database = db or Database(settings.db_path)
     database.initialize()
+    database.reap_stale_crawl_jobs()
 
     app = FastAPI(title="GitHub-Tool", docs_url=None, redoc_url=None)
     app.state.settings = settings
     app.state.db = database
     app.state.client = client
+    app.state.crawl_lock = threading.Lock()
     app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
     @app.get("/", response_class=HTMLResponse)
@@ -321,6 +335,27 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
             return True
 
         repos = [r for r in repos if visible(r)]
+
+        history_params = normalize_search_params(
+            {
+                "keyword": keyword_slug,
+                "q": query_override,
+                "window": window,
+                "source": source,
+                "language": langs,
+                "sort": sort,
+                "limit": limit,
+                "min_stars": min_stars,
+                "license": license_name,
+                "archived": "1" if include_archived else "",
+                "forks": "1" if include_forks else "",
+                "in_readme": "1" if in_readme else "",
+                "readme_q": _readme_query(request, keyword_slug) if in_readme else "",
+            }
+        )
+        # Record every executed search, including a failed API call with zero
+        # results, so /saved always has a replayable definition to show.
+        record_best_effort(database, history_params, source, len(repos))
 
         filter_params: dict[str, Any] = {
             "window": window,
@@ -546,8 +581,17 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
                     ),
                 }
             )
+        history_links = [
+            {
+                **item,
+                "replay_url": "/search?" + _qs(item["params"]),
+            }
+            for item in database.list_search_history(limit=20)
+        ]
         return templates.TemplateResponse(
-            request, "saved.html", _context(request, nav="saved", saved_links=saved_links)
+            request,
+            "saved.html",
+            _context(request, nav="saved", saved_links=saved_links, history_links=history_links),
         )
 
     @app.post("/saved")
@@ -588,12 +632,114 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
         database.delete_saved_search(name)
         return RedirectResponse("/saved", status_code=303)
 
+    @app.post("/saved/history/clear")
+    def clear_history() -> RedirectResponse:
+        database.clear_search_history()
+        return RedirectResponse("/saved", status_code=303)
+
     @app.get("/crawl", response_class=HTMLResponse)
     def crawl_page(request: Request) -> HTMLResponse:
         latest = database.latest_run()
         slices = database.slice_counts(latest["id"]) if latest else {}
+        active_job = database.active_crawl_job()
+        job_id = request.query_params.get("job")
+        job = database.get_crawl_job(job_id) if job_id else active_job
+        run = resolve_job_run(database, job)
+        if run:
+            latest = run
+            slices = database.slice_counts(run["id"])
         return templates.TemplateResponse(
-            request, "crawl.html", _context(request, nav="crawl", latest=latest, slices=slices)
+            request,
+            "crawl.html",
+            _context(
+                request,
+                nav="crawl",
+                latest=latest,
+                slices=slices,
+                active_job=active_job,
+                job=job,
+                profiles=sorted(WEB_CRAWL_ALLOWED_PROFILES),
+                max_slices=WEB_CRAWL_MAX_SLICES,
+                max_pages=WEB_CRAWL_MAX_PAGES,
+            ),
+        )
+
+    @app.post("/crawl")
+    def start_crawl(
+        request: Request,
+        profile: str = Form("ai"),
+        max_slices: str = Form("1"),
+        max_pages_per_slice: str = Form("1"),
+        discovery: str = Form("rest"),
+        fetch_readmes: str = Form(""),
+        in_readme: str = Form(""),
+        include_forks: str = Form(""),
+    ):
+        if settings.offline:
+            return templates.TemplateResponse(
+                request,
+                "error.html",
+                _context(request, message="Crawls are disabled in offline mode."),
+                status_code=503,
+            )
+        crawl_request = CrawlRequest.from_form(
+            profile,
+            max_slices,
+            max_pages_per_slice,
+            discovery,
+            fetch_readmes,
+            in_readme,
+            include_forks,
+        )
+        if crawl_request is None:
+            return templates.TemplateResponse(
+                request,
+                "error.html",
+                _context(request, message="Invalid crawl options."),
+                status_code=400,
+            )
+        params = crawl_request.as_dict()
+        with app.state.crawl_lock:
+            job = database.claim_crawl_job(uuid.uuid4().hex, crawl_request.profile, params)
+        if job is None:
+            return templates.TemplateResponse(
+                request,
+                "error.html",
+                _context(request, message="A crawl is already running. Please wait."),
+                status_code=409,
+            )
+        runner = getattr(app.state, "crawl_runner", None)
+        if runner is not None:
+            try:
+                runner(job["id"], params)
+            except Exception as exc:  # noqa: BLE001 - do not strand the slot
+                database.update_crawl_job(
+                    job["id"],
+                    status="failed",
+                    phase="error",
+                    error=str(exc),
+                    finished_at=utc_now(),
+                )
+        else:
+            threading.Thread(
+                target=run_crawl_job,
+                args=(settings, job["id"], params, database),
+                daemon=True,
+            ).start()
+        return RedirectResponse(f"/crawl?job={job['id']}", status_code=303)
+
+    @app.get("/crawl/status/{job_id}")
+    def crawl_status(job_id: str) -> JSONResponse:
+        job = database.get_crawl_job(job_id)
+        if job is None:
+            return JSONResponse({"error": "Unknown crawl job"}, status_code=404)
+        run = resolve_job_run(database, job)
+        return JSONResponse(
+            {
+                **job,
+                "run": run,
+                "slices": database.slice_counts(run["id"]) if run else {},
+            }
         )
 
     def _export_rows(request: Request) -> tuple[list[dict[str, Any]], str]:

@@ -17,6 +17,7 @@ from .github import GitHubClient, GitHubError, OfflineError
 from .keywords import KEYWORDS, PROFILES, WINDOW_LABELS, get_keyword, write_keyword_map
 from .links import generate_links
 from .models import utc_today
+from .search_history import normalize_search_params, record_best_effort
 
 
 def _window_days(value: str | int) -> int:
@@ -158,36 +159,66 @@ def cmd_search(args: argparse.Namespace) -> int:
         query = f"{query} in:readme"
     if getattr(args, "include_forks", False) and "fork:" not in query:
         query = f"{query} fork:true"
+    search_params = normalize_search_params(
+        {
+            "keyword": keyword.slug,
+            # Local CLI search uses the keyword's display name as its FTS query
+            # when no explicit --query is given. An explicit API --query is
+            # stored with its window/README/fork qualifiers so web replay does
+            # not silently drop the window (it skips that qualifier with `q`).
+            "q": (
+                (args.query or keyword.name)
+                if args.local
+                else (query if args.query else None)
+            ),
+            "window": args.window,
+            "source": "local" if args.local else "api",
+            # Local CLI search does not apply --language; recording it would
+            # make a replay filter out rows the original command displayed.
+            "language": [] if args.local else ([args.language] if args.language else []),
+            "sort": args.sort,
+            "limit": args.limit,
+            "in_readme": args.in_readme,
+            "forks": args.include_forks,
+            "readme_q": (args.query or keyword.name) if args.in_readme else "",
+        }
+    )
     if args.local:
         rows = db.search_fts(args.query or keyword.name, limit=args.limit)
+        record_best_effort(db, search_params, "local", len(rows))
         if not rows:
             print("No local matches. Run a crawl first.")
             return 0
         _print_repos(rows)
         return 0
-    with _client(settings, db) as client:
-        per_page = min(max(args.limit, 1), 100)
-        collected = []
-        page = 1
-        while len(collected) < args.limit and page <= 10:
-            result = client.search_repositories(
-                query, sort=args.sort, order=args.order, per_page=per_page, page=page
-            )
-            collected.extend(result.items)
-            if len(result.items) < per_page or len(collected) >= min(result.total_count, 1000):
-                break
-            page += 1
-            per_page = min(100, args.limit - len(collected))
-            if per_page <= 0:
-                break
-        collected = collected[: args.limit]
-        if args.save:
-            for repo in collected:
-                db.upsert_repo(repo, keyword=keyword.slug)
-        _print_repos(collected)
-        print(f"\n{len(collected)} shown · GitHub total {result.total_count:,}")
-        if result.rate_limit.remaining is not None:
-            print(f"search rate limit remaining: {result.rate_limit.remaining}/{result.rate_limit.limit}")
+    try:
+        with _client(settings, db) as client:
+            per_page = min(max(args.limit, 1), 100)
+            collected = []
+            page = 1
+            while len(collected) < args.limit and page <= 10:
+                result = client.search_repositories(
+                    query, sort=args.sort, order=args.order, per_page=per_page, page=page
+                )
+                collected.extend(result.items)
+                if len(result.items) < per_page or len(collected) >= min(result.total_count, 1000):
+                    break
+                page += 1
+                per_page = min(100, args.limit - len(collected))
+                if per_page <= 0:
+                    break
+            collected = collected[: args.limit]
+    except GitHubError:
+        record_best_effort(db, search_params, "api", 0)
+        raise
+    record_best_effort(db, search_params, "api", len(collected))
+    if args.save:
+        for repo in collected:
+            db.upsert_repo(repo, keyword=keyword.slug)
+    _print_repos(collected)
+    print(f"\n{len(collected)} shown · GitHub total {result.total_count:,}")
+    if result.rate_limit.remaining is not None:
+        print(f"search rate limit remaining: {result.rate_limit.remaining}/{result.rate_limit.limit}")
     return 0
 
 

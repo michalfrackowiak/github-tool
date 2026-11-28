@@ -12,7 +12,7 @@ from typing import Any, Iterable, Iterator, Mapping, Sequence
 from .models import Repo, StarDay, utc_today
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS schema_meta (
@@ -126,6 +126,31 @@ CREATE TABLE IF NOT EXISTS saved_searches (
     params TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+
+-- Automatic history is intentionally separate from named saves: names stay
+-- unique and user-controlled, while every executed search leaves a row here.
+CREATE TABLE IF NOT EXISTS search_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    params TEXT NOT NULL,
+    source TEXT NOT NULL,
+    result_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS crawl_jobs (
+    id TEXT PRIMARY KEY,
+    run_id TEXT,
+    profile TEXT NOT NULL,
+    params TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued',
+    phase TEXT NOT NULL DEFAULT 'queued',
+    summary TEXT,
+    error TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    finished_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_crawl_jobs_status ON crawl_jobs(status);
 
 CREATE TABLE IF NOT EXISTS http_cache (
     url TEXT PRIMARY KEY,
@@ -682,6 +707,15 @@ class Database:
             row = conn.execute("SELECT * FROM crawl_runs ORDER BY started_at DESC LIMIT 1").fetchone()
         return dict(row) if row else None
 
+    def latest_run_since(self, started_at: str) -> dict[str, Any] | None:
+        """Find the run a web job started without assuming it is the newest run."""
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM crawl_runs WHERE started_at >= ? ORDER BY started_at DESC LIMIT 1",
+                (started_at,),
+            ).fetchone()
+        return dict(row) if row else None
+
     def update_run(self, run_id: str, **fields: Any) -> None:
         if not fields:
             return
@@ -767,6 +801,143 @@ class Database:
         with self.connect() as conn:
             cur = conn.execute("DELETE FROM saved_searches WHERE name=?", (name,))
             return cur.rowcount > 0
+
+    # --------------------------------------------------------- search history
+    def record_search(
+        self, params: dict[str, Any], *, source: str = "api", result_count: int = 0
+    ) -> int:
+        """Append an automatic search-history entry; named saves are untouched."""
+        with self.connect() as conn:
+            cur = conn.execute(
+                "INSERT INTO search_history(params, source, result_count, created_at) "
+                "VALUES(?, ?, ?, ?)",
+                (json.dumps(params, sort_keys=True), source, int(result_count), _iso_now()),
+            )
+            return int(cur.lastrowid or 0)
+
+    def list_search_history(self, limit: int = 20) -> list[dict[str, Any]]:
+        with self.connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM search_history ORDER BY id DESC LIMIT ?", (max(1, int(limit)),)
+            ).fetchall()
+        return [
+            {
+                "id": r["id"],
+                "params": json.loads(r["params"]),
+                "source": r["source"],
+                "result_count": int(r["result_count"]),
+                "created_at": r["created_at"],
+            }
+            for r in rows
+        ]
+
+    def clear_search_history(self) -> int:
+        with self.connect() as conn:
+            cur = conn.execute("DELETE FROM search_history")
+            return cur.rowcount
+
+    # ------------------------------------------------------------- crawl jobs
+    def claim_crawl_job(
+        self, job_id: str, profile: str, params: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        """Claim the single active web crawl slot, or return ``None`` if busy.
+
+        ``BEGIN IMMEDIATE`` makes the check-and-insert atomic even if the app is
+        later run with more than one worker process against the same database.
+        """
+        now = _iso_now()
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            self._reap_stale_crawl_jobs_conn(conn)
+            active = conn.execute(
+                "SELECT id FROM crawl_jobs WHERE status IN ('queued', 'running') LIMIT 1"
+            ).fetchone()
+            if active is not None:
+                return None
+            conn.execute(
+                "INSERT INTO crawl_jobs(id, profile, params, status, phase, created_at, updated_at) "
+                "VALUES(?, ?, ?, 'queued', 'queued', ?, ?)",
+                (job_id, profile, json.dumps(params, sort_keys=True), now, now),
+            )
+            return {
+                "id": job_id,
+                "profile": profile,
+                "params": dict(params),
+                "status": "queued",
+                "phase": "queued",
+                "created_at": now,
+                "updated_at": now,
+            }
+
+    def get_crawl_job(self, job_id: str) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute("SELECT * FROM crawl_jobs WHERE id=?", (job_id,)).fetchone()
+        return self._crawl_job_row(row) if row is not None else None
+
+    def active_crawl_job(self) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM crawl_jobs WHERE status IN ('queued', 'running') "
+                "ORDER BY created_at DESC LIMIT 1"
+            ).fetchone()
+        return self._crawl_job_row(row) if row is not None else None
+
+    @staticmethod
+    def _reap_stale_crawl_jobs_conn(
+        conn: sqlite3.Connection, max_age_seconds: int = 900
+    ) -> int:
+        """Release jobs idle long enough to be considered abandoned."""
+        from datetime import datetime, timedelta, timezone
+
+        cutoff = (
+            datetime.now(timezone.utc) - timedelta(seconds=max(0, int(max_age_seconds)))
+        ).isoformat(timespec="seconds").replace("+00:00", "Z")
+        error = f"Interrupted by a server restart or stale worker (idle > {max_age_seconds}s)."
+        now = _iso_now()
+        cur = conn.execute(
+            "UPDATE crawl_jobs SET status='failed', phase='error', error=?, finished_at=?, "
+            "updated_at=? WHERE status IN ('queued', 'running') AND updated_at < ?",
+            (error, now, now, cutoff),
+        )
+        return cur.rowcount
+
+    def reap_stale_crawl_jobs(self, max_age_seconds: int = 900) -> int:
+        """Release jobs left behind by a killed/restarted web process.
+
+        Called at app startup and again while claiming a slot. Heartbeats keep
+        a live crawl's ``updated_at`` fresh so it is never reaped mid-run.
+        """
+        with self.connect() as conn:
+            return self._reap_stale_crawl_jobs_conn(conn, max_age_seconds)
+
+    def update_crawl_job(self, job_id: str, **fields: Any) -> None:
+        if not fields:
+            return
+        allowed = {"run_id", "status", "phase", "summary", "error", "finished_at"}
+        updates = {k: v for k, v in fields.items() if k in allowed}
+        updates["updated_at"] = _iso_now()
+        if "summary" in updates and updates["summary"] is not None:
+            updates["summary"] = json.dumps(updates["summary"], sort_keys=True)
+        assignments = ", ".join(f"{k}=?" for k in updates)
+        with self.connect() as conn:
+            conn.execute(f"UPDATE crawl_jobs SET {assignments} WHERE id=?", (*updates.values(), job_id))
+
+    @staticmethod
+    def _crawl_job_row(row: sqlite3.Row) -> dict[str, Any]:
+        summary = row["summary"]
+        return {
+            "id": row["id"],
+            "run_id": row["run_id"],
+            "profile": row["profile"],
+            "params": json.loads(row["params"]),
+            "status": row["status"],
+            "phase": row["phase"],
+            "summary": json.loads(summary) if summary else None,
+            "error": row["error"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "finished_at": row["finished_at"],
+        }
 
     # ---------------------------------------------------------------- http cache
     def get_http_cache(self, url: str) -> tuple[str | None, str] | None:

@@ -15,7 +15,7 @@ import hashlib
 import json
 import logging
 import time
-from typing import Any
+from typing import Any, Callable
 
 from . import keywords
 from .config import Settings
@@ -41,6 +41,7 @@ class CrawlSummary:
     pages_fetched: int = 0
     repos_seen: int = 0
     repos_inserted: int = 0
+    repos_updated: int = 0
     readmes_fetched: int = 0
     readmes_not_modified: int = 0
     error: str | None = None
@@ -55,6 +56,7 @@ class CrawlSummary:
             "pages_fetched": self.pages_fetched,
             "repos_seen": self.repos_seen,
             "repos_inserted": self.repos_inserted,
+            "repos_updated": self.repos_updated,
             "readmes_fetched": self.readmes_fetched,
             "readmes_not_modified": self.readmes_not_modified,
             "error": self.error,
@@ -66,6 +68,7 @@ class _Stats:
     pages_fetched: int = 0
     repos_seen: int = 0
     repos_inserted: int = 0
+    repos_updated: int = 0
     readmes_fetched: int = 0
     readmes_not_modified: int = 0
 
@@ -139,18 +142,24 @@ class Crawler:
         max_pages_per_slice: int | None = None,
         in_readme: bool = False,
         include_forks: bool = False,
+        on_run_start: Callable[[str], None] | None = None,
+        on_progress: Callable[[str], None] | None = None,
     ) -> CrawlSummary:
         if discovery not in {"rest", "graphql"}:
             raise ValueError(f"Unknown discovery mode: {discovery!r}")
 
         stats = _Stats()
         current_slice_id: int | None = None
+        if on_progress is not None:
+            on_progress("planning")
 
         if resume is not None:
             run = self.db.get_run(resume)
             if run is None:
                 raise ValueError(f"Unknown crawl run: {resume!r}")
             run_id = resume
+            if on_run_start is not None:
+                on_run_start(run_id)
             profile_name = str(run["profile"])
             crawl_profile = keywords.PROFILES.get(profile_name)
             if fetch_readmes is None:
@@ -202,6 +211,8 @@ class Crawler:
                 profile, in_readme=in_readme, include_forks=include_forks
             )
             run_id = self.db.start_run(profile)
+            if on_run_start is not None:
+                on_run_start(run_id)
             self.db.add_slices(run_id, [sl.as_dict() for sl in planned])
             profile_name = profile
             slices_total = len(planned)
@@ -209,6 +220,9 @@ class Crawler:
 
         if max_slices is not None:
             slices_to_run = slices_to_run[: max(1, max_slices)]
+
+        if on_progress is not None:
+            on_progress("crawling")
 
         try:
             for sl in slices_to_run:
@@ -252,6 +266,9 @@ class Crawler:
                 self.db.update_slice(current_slice_id, status="failed", error=str(exc))
             self.logger.error("crawl run %s failed: %s", run_id, exc)
             raise
+
+        if on_progress is not None:
+            on_progress("finalizing")
 
         if self.db.pending_slices(run_id):
             self.db.update_run(run_id, status="paused")
@@ -439,6 +456,8 @@ class Crawler:
         stats.repos_seen += 1
         if inserted:
             stats.repos_inserted += 1
+        else:
+            stats.repos_updated += 1
         if fetch_readmes:
             self._maybe_fetch_readme(repo, existing, stats)
 
@@ -474,6 +493,7 @@ class Crawler:
             pages_fetched=stats.pages_fetched,
             repos_seen=stats.repos_seen,
             repos_inserted=stats.repos_inserted,
+            repos_updated=stats.repos_updated,
             readmes_fetched=stats.readmes_fetched,
             readmes_not_modified=stats.readmes_not_modified,
         )

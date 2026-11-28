@@ -36,6 +36,16 @@ REST search stops at 1,000 results per query, so a keyword × language pair must
 - GraphQL discovery returns up to 100 repos + stats per call (one rate-limit point); migrating stable discovery to GraphQL cuts REST search pressure roughly tenfold.
 - A ~10k-repo first backfill is roughly 2–4 hours of budget; daily refreshes are cheap if batched ~100 repos per GraphQL query.
 
+## Web crawl trigger
+
+The `/crawl` button is deliberately narrower than the CLI `crawl` command:
+
+- At most **one active job** is accepted; a second POST gets HTTP 409. Jobs are persisted in `crawl_jobs`; live jobs heartbeat every 60 seconds, and abandoned jobs are failed at startup or claim time so a killed worker cannot strand the slot.
+- Each job is capped at **5 slices** and **3 pages per slice** (well under the 1,000-result search cap per query). Profile, discovery mode, and README/fork/`in:readme` flags are allowlisted; arbitrary hosts, proxies, and tokens are not accepted from the form.
+- Planning still issues count calls, so even a small job can spend several search requests before it fetches pages. Use the CLI for larger crawls and watch `X-RateLimit-*` headers.
+- Crawls are rejected (HTTP 503) when offline mode is on. The worker constructs its own client from the app's `Settings` and writes through the app's `Database` path; each discovered repo is upserted immediately by `Crawler._store_repo()`.
+- The UI has **no authentication or CSRF protection**. Keep `github-tool serve` bound to loopback unless you add a real auth layer; do not expose the crawl endpoint to an untrusted network.
+
 ## Policy notes
 
 GitHub distinguishes API collection from scraping and prohibits excessive automated bulk activity. GitHub-Tool therefore:
