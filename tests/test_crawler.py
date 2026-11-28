@@ -171,13 +171,17 @@ def test_plan_profile_creates_and_persists_slices(monkeypatch, db, settings):
     assert len({s.query for s in slices}) == len(slices)
 
     started: list[str] = []
+    phases: list[str] = []
     summary = crawler.run(
         profile="tiny",
         fetch_readmes=False,
         max_slices=1,
         on_run_start=started.append,
+        on_progress=phases.append,
     )
     assert started == [summary.run_id]
+    assert phases[:2] == ["planning", "crawling"]
+    assert "finalizing" in phases
     assert summary.slices_total == 2
     assert summary.status == "paused"  # max_slices left work behind
     assert sum(db.slice_counts(summary.run_id).values()) == 2

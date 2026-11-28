@@ -238,6 +238,35 @@ def test_search_explicit_query_records_effective_window(tmp_path, monkeypatch):
     assert entry["params"]["window"] == "7d"
 
 
+def test_search_api_failure_still_creates_history(tmp_path, monkeypatch, capsys):
+    from github_tool import cli
+    from github_tool.db import Database
+    from github_tool.github import GitHubError
+
+    class FailingClient:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def search_repositories(self, query, **kwargs):
+            raise GitHubError("search unavailable")
+
+    monkeypatch.setattr(cli, "_client", lambda settings, database: FailingClient())
+    db_path = tmp_path / "api-failure.db"
+    Database(db_path).initialize()
+
+    assert cli.main(["search", "rag", "--db", str(db_path), "--limit", "1"]) == 1
+    assert "search unavailable" in capsys.readouterr().err
+
+    entries = Database(db_path).list_search_history()
+    assert len(entries) == 1
+    assert entries[0]["source"] == "api"
+    assert entries[0]["result_count"] == 0
+    assert entries[0]["params"]["keyword"] == "rag"
+
+
 def test_history_write_failure_does_not_hide_cli_results(tmp_path, monkeypatch, capsys, make_repo):
     from github_tool import cli
     from github_tool.db import Database

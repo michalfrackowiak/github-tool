@@ -143,12 +143,15 @@ class Crawler:
         in_readme: bool = False,
         include_forks: bool = False,
         on_run_start: Callable[[str], None] | None = None,
+        on_progress: Callable[[str], None] | None = None,
     ) -> CrawlSummary:
         if discovery not in {"rest", "graphql"}:
             raise ValueError(f"Unknown discovery mode: {discovery!r}")
 
         stats = _Stats()
         current_slice_id: int | None = None
+        if on_progress is not None:
+            on_progress("planning")
 
         if resume is not None:
             run = self.db.get_run(resume)
@@ -218,6 +221,9 @@ class Crawler:
         if max_slices is not None:
             slices_to_run = slices_to_run[: max(1, max_slices)]
 
+        if on_progress is not None:
+            on_progress("crawling")
+
         try:
             for sl in slices_to_run:
                 current_slice_id = int(sl["id"])
@@ -260,6 +266,9 @@ class Crawler:
                 self.db.update_slice(current_slice_id, status="failed", error=str(exc))
             self.logger.error("crawl run %s failed: %s", run_id, exc)
             raise
+
+        if on_progress is not None:
+            on_progress("finalizing")
 
         if self.db.pending_slices(run_id):
             self.db.update_run(run_id, status="paused")

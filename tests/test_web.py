@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
+import html
+import re
 
 import pytest
 from fastapi.testclient import TestClient
@@ -282,6 +284,12 @@ def test_web_search_auto_saves_replayable_history(web, db, make_repo):
     assert "Replay" in saved.text
     assert "keyword=rag" in saved.text
 
+    replay_match = re.search(r'href="([^"]+)">Replay</a>', saved.text)
+    assert replay_match is not None
+    replayed = client.get(html.unescape(replay_match.group(1)))
+    assert replayed.status_code == 200
+    assert "acme/history-web" in replayed.text
+
     cleared = client.post("/saved/history/clear", follow_redirects=False)
     assert cleared.status_code == 303
     assert db.list_search_history() == []
@@ -368,6 +376,88 @@ def test_crawl_button_runs_crawler_and_persists_repos(web, db, make_repo):
     assert "1 new" in page.text
 
 
+def test_crawl_request_is_typed_and_curated():
+    from github_tool.web.crawl import WEB_CRAWL_ALLOWED_PROFILES, CrawlRequest
+
+    assert "default" not in WEB_CRAWL_ALLOWED_PROFILES
+    assert "ai" in WEB_CRAWL_ALLOWED_PROFILES
+
+    request = CrawlRequest.from_form("web", "99", "99", "graphql", "1", "1", "1")
+    assert request == CrawlRequest(
+        profile="web",
+        max_slices=5,
+        max_pages_per_slice=3,
+        discovery="graphql",
+        fetch_readmes=True,
+        in_readme=True,
+        include_forks=True,
+    )
+    assert CrawlRequest.from_dict(request.as_dict()) == request
+    assert CrawlRequest.from_form("default", "1", "1", "rest", "", "", "") is None
+
+
+def test_crawl_job_status_has_one_mapping():
+    from github_tool.web.crawl import crawl_job_status
+
+    assert crawl_job_status("completed") == ("completed", "done")
+    assert crawl_job_status("failed") == ("failed", "failed")
+    assert crawl_job_status("paused") == ("paused", "paused")
+    assert crawl_job_status("already_done") == ("paused", "paused")
+
+
+def test_crawl_job_phase_advances(web, db, monkeypatch):
+    from github_tool.crawler import CrawlSummary
+
+    class WorkerClient:
+        def close(self):
+            pass
+
+    class PhaseCrawler:
+        def __init__(self, settings, database, client):
+            pass
+
+        def run(self, **kwargs):
+            progress = kwargs["on_progress"]
+            progress("planning")
+            progress("crawling")
+            progress("finalizing")
+            return CrawlSummary(
+                run_id="phase-run",
+                profile="ai",
+                status="completed",
+                slices_total=1,
+                slices_done=1,
+            )
+
+    seen: list[str] = []
+    original_update = db.update_crawl_job
+
+    def capture(job_id, **fields):
+        if "phase" in fields:
+            seen.append(fields["phase"])
+        return original_update(job_id, **fields)
+
+    monkeypatch.setattr(db, "update_crawl_job", capture)
+    client = web(client=FakeClient())
+    client.app.state.crawl_runner = lambda job_id, params: run_crawl_job(
+        client.app.state.settings,
+        job_id,
+        params,
+        db,
+        crawler_factory=PhaseCrawler,
+        client_factory=lambda settings, database: WorkerClient(),
+    )
+    response = client.post("/crawl", data={"profile": "ai"}, follow_redirects=False)
+    assert response.status_code == 303
+
+    assert "planning" in seen
+    assert "crawling" in seen
+    assert "finalizing" in seen
+    assert "done" in seen
+    job_id = response.headers["location"].split("job=")[1]
+    assert client.get(f"/crawl/status/{job_id}").json()["phase"] == "done"
+
+
 def test_crawl_status_tracks_run_started_after_job(web, db):
     client = web(client=FakeClient())
     client.app.state.crawl_runner = lambda job_id, params: None
@@ -395,14 +485,18 @@ def test_app_startup_releases_stale_crawl_job(settings, db):
     assert db.get_crawl_job("stale-web")["status"] == "failed"
 
 
-def test_failed_api_search_does_not_create_history(web, db):
+def test_failed_api_search_still_creates_history(web, db):
     client = web(client=FailingClient())
 
     response = client.get("/search?keyword=rag&source=api")
 
     assert response.status_code == 200
     assert "search unavailable" in response.text
-    assert db.list_search_history() == []
+    entries = db.list_search_history()
+    assert len(entries) == 1
+    assert entries[0]["source"] == "api"
+    assert entries[0]["result_count"] == 0
+    assert entries[0]["params"]["keyword"] == "rag"
 
 
 def test_history_write_failure_does_not_hide_search_results(web, db, make_repo, monkeypatch):
@@ -425,6 +519,7 @@ def test_crawl_form_validates_and_caps_numeric_options(web, db):
     client.app.state.crawl_runner = lambda job_id, params: None
 
     assert client.post("/crawl", data={"profile": "not-a-profile"}).status_code == 400
+    assert client.post("/crawl", data={"profile": "default"}).status_code == 400
     assert client.post("/crawl", data={"profile": "ai", "max_slices": "abc"}).status_code == 400
 
     response = client.post(

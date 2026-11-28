@@ -13,3 +13,4 @@ data/
 exports/
 htmlcov/
 .coverage
+coverage.xml

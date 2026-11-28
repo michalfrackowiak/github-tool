@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import re
 from contextlib import contextmanager
-from datetime import datetime, timezone
 import html
 from pathlib import Path
 import threading
@@ -23,29 +22,25 @@ from fastapi.templating import Jinja2Templates
 from markupsafe import Markup
 
 from ..config import Settings
-from ..crawler import Crawler
 from ..db import Database
 from ..export import to_csv, to_markdown
 from ..github import GitHubClient, GitHubError, OfflineError
-from ..keywords import (
-    KEYWORDS,
-    LANGUAGES,
-    PROFILES,
-    WINDOW_DAYS,
-    WINDOW_LABELS,
-    WINDOWS,
-    get_keyword,
-)
+from ..keywords import KEYWORDS, LANGUAGES, WINDOW_DAYS, WINDOW_LABELS, WINDOWS, get_keyword
 from ..links import generate_links
 from ..models import Repo, TrendRow
-from ..search_history import normalize_search_params
+from ..search_history import normalize_search_params, record_best_effort
+from .crawl import (
+    WEB_CRAWL_ALLOWED_PROFILES,
+    WEB_CRAWL_MAX_PAGES,
+    WEB_CRAWL_MAX_SLICES,
+    CrawlRequest,
+    resolve_job_run,
+    run_crawl_job,
+    utc_now,
+)
 
 BASE_DIR = Path(__file__).parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-
-WEB_CRAWL_MAX_SLICES = 5
-WEB_CRAWL_MAX_PAGES = 3
-WEB_CRAWL_ALLOWED_PROFILES = frozenset(PROFILES)
 
 
 def _sparkline_svg(series: list[tuple[str, int]], width: int = 280, height: int = 64) -> Markup:
@@ -90,121 +85,8 @@ def _client(app: FastAPI) -> Iterator[GitHubClient | None]:
         client.close()
 
 
-def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-
-
-def _job_run(database: Database, job: dict[str, Any] | None) -> dict[str, Any] | None:
-    """Resolve the run belonging to a web job, including while it is starting."""
-    if not job:
-        return None
-    if job.get("run_id"):
-        run = database.get_run(job["run_id"])
-        if run is not None:
-            return run
-    if job["status"] in {"queued", "running"}:
-        # Crawler.run() creates the run_id after the job is claimed; until it
-        # finishes, match runs started after the job rather than an older run.
-        return database.latest_run_since(job["created_at"])
-    return None
-
-
-def run_crawl_job(
-    settings: Settings,
-    job_id: str,
-    params: dict[str, Any],
-    database: Database | None = None,
-    *,
-    crawler_factory: Any = None,
-    client_factory: Any = None,
-) -> None:
-    """Run one bounded web crawl job using the crawler's normal DB writer.
-
-    ``crawler_factory`` and ``client_factory`` are injection seams for tests;
-    production uses the same ``Crawler``/``GitHubClient`` classes as the CLI.
-    Every failure path — including setup — is persisted on the job row so the
-    single-flight slot is never stranded.
-    """
-    database = database or Database(settings.db_path)
-    client: Any = None
-    heartbeat_thread: threading.Thread | None = None
-    stop_heartbeat = threading.Event()
-    try:
-        database.initialize()
-        client = (
-            GitHubClient(settings, cache=database)
-            if client_factory is None
-            else client_factory(settings, database)
-        )
-        crawler = (crawler_factory or Crawler)(settings, database, client)
-        database.update_crawl_job(job_id, status="running", phase="crawling")
-
-        def heartbeat() -> None:
-            while not stop_heartbeat.wait(60):
-                try:
-                    database.update_crawl_job(job_id, phase="crawling")
-                except Exception:  # noqa: BLE001 - a failed heartbeat is harmless
-                    pass
-
-        heartbeat_thread = threading.Thread(
-            target=heartbeat, daemon=True, name=f"crawl-heartbeat-{job_id[:8]}"
-        )
-        heartbeat_thread.start()
-
-        def on_run_start(run_id: str) -> None:
-            database.update_crawl_job(job_id, run_id=run_id)
-
-        summary = crawler.run(
-            profile=params["profile"],
-            fetch_readmes=bool(params.get("fetch_readmes", False)),
-            discovery=params.get("discovery", "rest"),
-            max_slices=int(params.get("max_slices", 1)),
-            max_pages_per_slice=int(params.get("max_pages_per_slice", 1)),
-            in_readme=bool(params.get("in_readme", False)),
-            include_forks=bool(params.get("include_forks", False)),
-            on_run_start=on_run_start,
-        )
-        data = summary.as_dict()
-        status = data.get("status", "failed")
-        job_status = "completed" if status == "completed" else (
-            "failed" if status == "failed" else "paused"
-        )
-        database.update_crawl_job(
-            job_id,
-            status=job_status,
-            phase="done" if job_status == "completed" else job_status,
-            run_id=data.get("run_id"),
-            summary=data,
-            error=data.get("error"),
-            finished_at=_utc_now(),
-        )
-    except Exception as exc:  # noqa: BLE001 - persisted so the UI can show it
-        database.update_crawl_job(
-            job_id,
-            status="failed",
-            phase="error",
-            error=str(exc),
-            finished_at=_utc_now(),
-        )
-    finally:
-        stop_heartbeat.set()
-        if heartbeat_thread is not None:
-            heartbeat_thread.join(timeout=1.0)
-        close = getattr(client, "close", None)
-        if callable(close):
-            close()
-
-
 def _langs(request: Request) -> list[str]:
     return [lang for lang in request.query_params.getlist("language") if lang]
-
-
-def _bounded_form_int(raw: str, cap: int) -> int | None:
-    try:
-        value = int(raw)
-    except (TypeError, ValueError):
-        return None
-    return max(1, min(value, cap))
 
 
 def _int_param(request: Request, key: str, default: int, minimum: int = 0, maximum: int = 10_000_000) -> int:
@@ -471,11 +353,9 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
                 "readme_q": _readme_query(request, keyword_slug) if in_readme else "",
             }
         )
-        if error is None:  # a failed API call produced no results to replay
-            try:
-                database.record_search(history_params, source=source, result_count=len(repos))
-            except Exception:  # history is best-effort; never hide search results
-                pass
+        # Record every executed search, including a failed API call with zero
+        # results, so /saved always has a replayable definition to show.
+        record_best_effort(database, history_params, source, len(repos))
 
         filter_params: dict[str, Any] = {
             "window": window,
@@ -764,7 +644,7 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
         active_job = database.active_crawl_job()
         job_id = request.query_params.get("job")
         job = database.get_crawl_job(job_id) if job_id else active_job
-        run = _job_run(database, job)
+        run = resolve_job_run(database, job)
         if run:
             latest = run
             slices = database.slice_counts(run["id"])
@@ -802,31 +682,25 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
                 _context(request, message="Crawls are disabled in offline mode."),
                 status_code=503,
             )
-        bounded_slices = _bounded_form_int(max_slices, WEB_CRAWL_MAX_SLICES)
-        bounded_pages = _bounded_form_int(max_pages_per_slice, WEB_CRAWL_MAX_PAGES)
-        if (
-            profile not in WEB_CRAWL_ALLOWED_PROFILES
-            or discovery not in {"rest", "graphql"}
-            or bounded_slices is None
-            or bounded_pages is None
-        ):
+        crawl_request = CrawlRequest.from_form(
+            profile,
+            max_slices,
+            max_pages_per_slice,
+            discovery,
+            fetch_readmes,
+            in_readme,
+            include_forks,
+        )
+        if crawl_request is None:
             return templates.TemplateResponse(
                 request,
                 "error.html",
                 _context(request, message="Invalid crawl options."),
                 status_code=400,
             )
-        params = {
-            "profile": profile,
-            "max_slices": bounded_slices,
-            "max_pages_per_slice": bounded_pages,
-            "discovery": discovery,
-            "fetch_readmes": fetch_readmes == "1",
-            "in_readme": in_readme == "1",
-            "include_forks": include_forks == "1",
-        }
+        params = crawl_request.as_dict()
         with app.state.crawl_lock:
-            job = database.claim_crawl_job(uuid.uuid4().hex, profile, params)
+            job = database.claim_crawl_job(uuid.uuid4().hex, crawl_request.profile, params)
         if job is None:
             return templates.TemplateResponse(
                 request,
@@ -844,7 +718,7 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
                     status="failed",
                     phase="error",
                     error=str(exc),
-                    finished_at=_utc_now(),
+                    finished_at=utc_now(),
                 )
         else:
             threading.Thread(
@@ -859,7 +733,7 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
         job = database.get_crawl_job(job_id)
         if job is None:
             return JSONResponse({"error": "Unknown crawl job"}, status_code=404)
-        run = _job_run(database, job)
+        run = resolve_job_run(database, job)
         return JSONResponse(
             {
                 **job,

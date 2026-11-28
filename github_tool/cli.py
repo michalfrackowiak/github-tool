@@ -17,7 +17,7 @@ from .github import GitHubClient, GitHubError, OfflineError
 from .keywords import KEYWORDS, PROFILES, WINDOW_LABELS, get_keyword, write_keyword_map
 from .links import generate_links
 from .models import utc_today
-from .search_history import normalize_search_params
+from .search_history import normalize_search_params, record_best_effort
 
 
 def _window_days(value: str | int) -> int:
@@ -185,42 +185,40 @@ def cmd_search(args: argparse.Namespace) -> int:
     )
     if args.local:
         rows = db.search_fts(args.query or keyword.name, limit=args.limit)
-        try:
-            db.record_search(search_params, source="local", result_count=len(rows))
-        except Exception:  # history is best-effort; never hide search results
-            pass
+        record_best_effort(db, search_params, "local", len(rows))
         if not rows:
             print("No local matches. Run a crawl first.")
             return 0
         _print_repos(rows)
         return 0
-    with _client(settings, db) as client:
-        per_page = min(max(args.limit, 1), 100)
-        collected = []
-        page = 1
-        while len(collected) < args.limit and page <= 10:
-            result = client.search_repositories(
-                query, sort=args.sort, order=args.order, per_page=per_page, page=page
-            )
-            collected.extend(result.items)
-            if len(result.items) < per_page or len(collected) >= min(result.total_count, 1000):
-                break
-            page += 1
-            per_page = min(100, args.limit - len(collected))
-            if per_page <= 0:
-                break
-        collected = collected[: args.limit]
-        try:
-            db.record_search(search_params, source="api", result_count=len(collected))
-        except Exception:  # history is best-effort; never hide search results
-            pass
-        if args.save:
-            for repo in collected:
-                db.upsert_repo(repo, keyword=keyword.slug)
-        _print_repos(collected)
-        print(f"\n{len(collected)} shown · GitHub total {result.total_count:,}")
-        if result.rate_limit.remaining is not None:
-            print(f"search rate limit remaining: {result.rate_limit.remaining}/{result.rate_limit.limit}")
+    try:
+        with _client(settings, db) as client:
+            per_page = min(max(args.limit, 1), 100)
+            collected = []
+            page = 1
+            while len(collected) < args.limit and page <= 10:
+                result = client.search_repositories(
+                    query, sort=args.sort, order=args.order, per_page=per_page, page=page
+                )
+                collected.extend(result.items)
+                if len(result.items) < per_page or len(collected) >= min(result.total_count, 1000):
+                    break
+                page += 1
+                per_page = min(100, args.limit - len(collected))
+                if per_page <= 0:
+                    break
+            collected = collected[: args.limit]
+    except GitHubError:
+        record_best_effort(db, search_params, "api", 0)
+        raise
+    record_best_effort(db, search_params, "api", len(collected))
+    if args.save:
+        for repo in collected:
+            db.upsert_repo(repo, keyword=keyword.slug)
+    _print_repos(collected)
+    print(f"\n{len(collected)} shown · GitHub total {result.total_count:,}")
+    if result.rate_limit.remaining is not None:
+        print(f"search rate limit remaining: {result.rate_limit.remaining}/{result.rate_limit.limit}")
     return 0
 
 

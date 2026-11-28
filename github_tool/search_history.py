@@ -64,3 +64,17 @@ def normalize_search_params(params: Mapping[str, Any]) -> dict[str, Any]:
         if cleaned is not None:
             out[key] = cleaned
     return out
+
+
+def record_best_effort(
+    database: Any, params: Mapping[str, Any], source: str, result_count: int
+) -> None:
+    """Record a search without ever hiding the search itself on failure.
+
+    Both the web route and the CLI use this so "history is best-effort" has one
+    owner. Failed API searches are recorded too, with ``result_count=0``.
+    """
+    try:
+        database.record_search(dict(params), source=source, result_count=result_count)
+    except Exception:  # noqa: BLE001 - history failure must not fail the search
+        pass
