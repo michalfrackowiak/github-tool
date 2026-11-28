@@ -9,7 +9,8 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
-# Keys kept in a history entry, in replay-friendly order.
+# Allowlisted keys kept in a history entry. Stored JSON is key-sorted by
+# Database.record_search(); this order is for readability only.
 HISTORY_KEYS = (
     "keyword",
     "q",

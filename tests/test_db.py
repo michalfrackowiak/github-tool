@@ -332,3 +332,14 @@ def test_stale_crawl_job_is_released_and_run_lookup_is_time_bounded(db):
     run_id = db.start_run("ai")
     assert db.latest_run_since("2020-01-01T00:00:00Z")["id"] == run_id
     assert db.latest_run_since("2100-01-01T00:00:00Z") is None
+
+
+def test_claim_reaps_stale_job_before_checking_single_flight(db):
+    assert db.claim_crawl_job("old", "ai", {"profile": "ai"}) is not None
+    with db.connect() as conn:
+        conn.execute("UPDATE crawl_jobs SET updated_at='2020-01-01T00:00:00Z' WHERE id='old'")
+
+    assert db.claim_crawl_job("new", "ai", {"profile": "ai"}) is not None
+
+    assert db.get_crawl_job("old")["status"] == "failed"
+    assert db.active_crawl_job()["id"] == "new"

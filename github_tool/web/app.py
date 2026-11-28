@@ -122,16 +122,38 @@ def run_crawl_job(
 
     ``crawler_factory`` and ``client_factory`` are injection seams for tests;
     production uses the same ``Crawler``/``GitHubClient`` classes as the CLI.
+    Every failure path — including setup — is persisted on the job row so the
+    single-flight slot is never stranded.
     """
     database = database or Database(settings.db_path)
-    database.initialize()
-    if client_factory is None:
-        client = GitHubClient(settings, cache=database)
-    else:
-        client = client_factory(settings, database)
-    crawler = (crawler_factory or Crawler)(settings, database, client)
+    client: Any = None
+    heartbeat_thread: threading.Thread | None = None
+    stop_heartbeat = threading.Event()
     try:
+        database.initialize()
+        client = (
+            GitHubClient(settings, cache=database)
+            if client_factory is None
+            else client_factory(settings, database)
+        )
+        crawler = (crawler_factory or Crawler)(settings, database, client)
         database.update_crawl_job(job_id, status="running", phase="crawling")
+
+        def heartbeat() -> None:
+            while not stop_heartbeat.wait(60):
+                try:
+                    database.update_crawl_job(job_id, phase="crawling")
+                except Exception:  # noqa: BLE001 - a failed heartbeat is harmless
+                    pass
+
+        heartbeat_thread = threading.Thread(
+            target=heartbeat, daemon=True, name=f"crawl-heartbeat-{job_id[:8]}"
+        )
+        heartbeat_thread.start()
+
+        def on_run_start(run_id: str) -> None:
+            database.update_crawl_job(job_id, run_id=run_id)
+
         summary = crawler.run(
             profile=params["profile"],
             fetch_readmes=bool(params.get("fetch_readmes", False)),
@@ -140,6 +162,7 @@ def run_crawl_job(
             max_pages_per_slice=int(params.get("max_pages_per_slice", 1)),
             in_readme=bool(params.get("in_readme", False)),
             include_forks=bool(params.get("include_forks", False)),
+            on_run_start=on_run_start,
         )
         data = summary.as_dict()
         status = data.get("status", "failed")
@@ -164,6 +187,9 @@ def run_crawl_job(
             finished_at=_utc_now(),
         )
     finally:
+        stop_heartbeat.set()
+        if heartbeat_thread is not None:
+            heartbeat_thread.join(timeout=1.0)
         close = getattr(client, "close", None)
         if callable(close):
             close()
@@ -171,6 +197,14 @@ def run_crawl_job(
 
 def _langs(request: Request) -> list[str]:
     return [lang for lang in request.query_params.getlist("language") if lang]
+
+
+def _bounded_form_int(raw: str, cap: int) -> int | None:
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return max(1, min(value, cap))
 
 
 def _int_param(request: Request, key: str, default: int, minimum: int = 0, maximum: int = 10_000_000) -> int:
@@ -437,10 +471,11 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
                 "readme_q": _readme_query(request, keyword_slug) if in_readme else "",
             }
         )
-        try:
-            database.record_search(history_params, source=source, result_count=len(repos))
-        except Exception:  # history is best-effort; never hide search results
-            pass
+        if error is None:  # a failed API call produced no results to replay
+            try:
+                database.record_search(history_params, source=source, result_count=len(repos))
+            except Exception:  # history is best-effort; never hide search results
+                pass
 
         filter_params: dict[str, Any] = {
             "window": window,
@@ -753,8 +788,8 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
     def start_crawl(
         request: Request,
         profile: str = Form("ai"),
-        max_slices: int = Form(1),
-        max_pages_per_slice: int = Form(1),
+        max_slices: str = Form("1"),
+        max_pages_per_slice: str = Form("1"),
         discovery: str = Form("rest"),
         fetch_readmes: str = Form(""),
         in_readme: str = Form(""),
@@ -767,7 +802,14 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
                 _context(request, message="Crawls are disabled in offline mode."),
                 status_code=503,
             )
-        if profile not in WEB_CRAWL_ALLOWED_PROFILES or discovery not in {"rest", "graphql"}:
+        bounded_slices = _bounded_form_int(max_slices, WEB_CRAWL_MAX_SLICES)
+        bounded_pages = _bounded_form_int(max_pages_per_slice, WEB_CRAWL_MAX_PAGES)
+        if (
+            profile not in WEB_CRAWL_ALLOWED_PROFILES
+            or discovery not in {"rest", "graphql"}
+            or bounded_slices is None
+            or bounded_pages is None
+        ):
             return templates.TemplateResponse(
                 request,
                 "error.html",
@@ -776,8 +818,8 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
             )
         params = {
             "profile": profile,
-            "max_slices": max(1, min(max_slices, WEB_CRAWL_MAX_SLICES)),
-            "max_pages_per_slice": max(1, min(max_pages_per_slice, WEB_CRAWL_MAX_PAGES)),
+            "max_slices": bounded_slices,
+            "max_pages_per_slice": bounded_pages,
             "discovery": discovery,
             "fetch_readmes": fetch_readmes == "1",
             "in_readme": in_readme == "1",
@@ -794,7 +836,16 @@ def create_app(settings: Settings | None = None, db: Database | None = None, cli
             )
         runner = getattr(app.state, "crawl_runner", None)
         if runner is not None:
-            runner(job["id"], params)
+            try:
+                runner(job["id"], params)
+            except Exception as exc:  # noqa: BLE001 - do not strand the slot
+                database.update_crawl_job(
+                    job["id"],
+                    status="failed",
+                    phase="error",
+                    error=str(exc),
+                    finished_at=_utc_now(),
+                )
         else:
             threading.Thread(
                 target=run_crawl_job,

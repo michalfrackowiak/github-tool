@@ -81,7 +81,7 @@ python -m github_tool serve
 
 Global flags `--db PATH` and `--offline` work before or after the subcommand. In offline mode the web UI and `search --local` never touch the network, and the web crawl button is disabled.
 
-Every executed search (web or CLI, `api` or `local`) appends its normalized query and filters to `search_history`; `/saved` lists the last 20 with one-click replay and a clear-history action. Named saves remain separate and unchanged. The `/crawl` page can start one bounded background crawl at a time (max 5 slices, 3 pages per slice) through the same `Crawler.run()` used by the CLI. Each discovered repo is upserted immediately by the crawler, and job progress/summary/errors are available on `/crawl` and `/crawl/status/{job_id}`. Keep the UI bound to loopback unless you add authentication — the form accepts no host, proxy, or token input.
+Every executed search (web or CLI, `api` or `local`) appends its normalized query and filters to `search_history`; `/saved` lists the last 20 with one-click replay and a clear-history action. Named saves remain separate and unchanged. The `/crawl` page can start one bounded background crawl at a time (max 5 slices, 3 pages per slice) through the same `Crawler.run()` used by the CLI. Each discovered repo is upserted immediately by the crawler, and job progress/summary/errors are available on `/crawl` and `/crawl/status/{job_id}`. Jobs heartbeat while running; stale or failed workers release the slot automatically. Keep the UI bound to loopback unless you add authentication — the form accepts no host, proxy, or token input.
 
 ## Architecture
 
@@ -122,7 +122,7 @@ Details: [`docs/rate-limits.md`](docs/rate-limits.md) · validation evidence: [`
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-**221 tests pass, 0 skipped/xfailed (87% coverage).** The suite covers links, keywords, schema/FTS and schema upgrades, the HTTP client with recorded fixtures and `MockTransport` (retry/backoff, ETag/304, README, star history, GraphQL, Trending HTML), the query planner, crawler resume/dedupe, trend math and sorts, extraction (heuristics + strict LLM JSON + manifest hints), export, CLI, scheduler, logging redaction, the web UI (including auto-saved search history and the bounded crawl trigger), and both extraction-audit scripts.
+**231 tests pass, 0 skipped/xfailed (87% coverage).** The suite covers links, keywords, schema/FTS and schema upgrades, the HTTP client with recorded fixtures and `MockTransport` (retry/backoff, ETag/304, README, star history, GraphQL, Trending HTML), the query planner, crawler resume/dedupe, trend math and sorts, extraction (heuristics + strict LLM JSON + manifest hints), export, CLI, scheduler, logging redaction, the web UI (including auto-saved search history and the bounded crawl trigger), and both extraction-audit scripts.
 
 Install the development tooling with `python -m pip install -e ".[dev]"` (or `python -m pip install -r requirements.txt`). GitHub Actions (`.github/workflows/ci.yml`) runs `ruff check .` and the test suite with coverage on pushes and pull requests targeting `main`.
 

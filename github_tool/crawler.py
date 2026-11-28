@@ -15,7 +15,7 @@ import hashlib
 import json
 import logging
 import time
-from typing import Any
+from typing import Any, Callable
 
 from . import keywords
 from .config import Settings
@@ -142,6 +142,7 @@ class Crawler:
         max_pages_per_slice: int | None = None,
         in_readme: bool = False,
         include_forks: bool = False,
+        on_run_start: Callable[[str], None] | None = None,
     ) -> CrawlSummary:
         if discovery not in {"rest", "graphql"}:
             raise ValueError(f"Unknown discovery mode: {discovery!r}")
@@ -154,6 +155,8 @@ class Crawler:
             if run is None:
                 raise ValueError(f"Unknown crawl run: {resume!r}")
             run_id = resume
+            if on_run_start is not None:
+                on_run_start(run_id)
             profile_name = str(run["profile"])
             crawl_profile = keywords.PROFILES.get(profile_name)
             if fetch_readmes is None:
@@ -205,6 +208,8 @@ class Crawler:
                 profile, in_readme=in_readme, include_forks=include_forks
             )
             run_id = self.db.start_run(profile)
+            if on_run_start is not None:
+                on_run_start(run_id)
             self.db.add_slices(run_id, [sl.as_dict() for sl in planned])
             profile_name = profile
             slices_total = len(planned)

@@ -162,13 +162,20 @@ def cmd_search(args: argparse.Namespace) -> int:
     search_params = normalize_search_params(
         {
             "keyword": keyword.slug,
-            # Local CLI search uses the keyword's display name as its FTS
-            # query when no explicit --query is given; store that effective
-            # text so a replay link produces the same local results.
-            "q": args.query if args.query else (keyword.name if args.local else None),
+            # Local CLI search uses the keyword's display name as its FTS query
+            # when no explicit --query is given. An explicit API --query is
+            # stored with its window/README/fork qualifiers so web replay does
+            # not silently drop the window (it skips that qualifier with `q`).
+            "q": (
+                (args.query or keyword.name)
+                if args.local
+                else (query if args.query else None)
+            ),
             "window": args.window,
             "source": "local" if args.local else "api",
-            "language": [args.language] if args.language else [],
+            # Local CLI search does not apply --language; recording it would
+            # make a replay filter out rows the original command displayed.
+            "language": [] if args.local else ([args.language] if args.language else []),
             "sort": args.sort,
             "limit": args.limit,
             "in_readme": args.in_readme,

@@ -202,3 +202,55 @@ def test_search_auto_saves_api_and_local_history(tmp_path, monkeypatch, make_rep
     assert entries[1]["result_count"] == 1
     assert entries[0]["source"] == "local"
     assert entries[0]["params"]["q"] == "RAG"  # effective local FTS query
+    assert "language" not in entries[0]["params"]  # --language is ignored by local search
+
+
+def test_search_explicit_query_records_effective_window(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from github_tool import cli
+    from github_tool.db import Database
+
+    class Client:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def search_repositories(self, query, **kwargs):
+            return SimpleNamespace(
+                items=[],
+                total_count=0,
+                rate_limit=SimpleNamespace(remaining=None, limit=None),
+            )
+
+    monkeypatch.setattr(cli, "_client", lambda settings, database: Client())
+    db_path = tmp_path / "explicit.db"
+    Database(db_path).initialize()
+
+    assert cli.main(
+        ["search", "rag", "--db", str(db_path), "--query", "retrieval", "--window", "7d"]
+    ) == 0
+
+    entry = Database(db_path).list_search_history()[0]
+    assert entry["params"]["q"].startswith("retrieval pushed:>=")
+    assert entry["params"]["window"] == "7d"
+
+
+def test_history_write_failure_does_not_hide_cli_results(tmp_path, monkeypatch, capsys, make_repo):
+    from github_tool import cli
+    from github_tool.db import Database
+
+    db_path = tmp_path / "history-failure.db"
+    db = Database(db_path)
+    db.initialize()
+    db.upsert_repo(make_repo(902, "acme/cli-history-failure", description="rag"))
+
+    def fail_history(self, *args, **kwargs):
+        raise RuntimeError("history storage unavailable")
+
+    monkeypatch.setattr(cli.Database, "record_search", fail_history)
+
+    assert cli.main(["search", "rag", "--db", str(db_path), "--local", "--limit", "1"]) == 0
+    assert "acme/cli-history-failure" in capsys.readouterr().out

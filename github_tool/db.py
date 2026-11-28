@@ -848,6 +848,7 @@ class Database:
         now = _iso_now()
         with self.connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
+            self._reap_stale_crawl_jobs_conn(conn)
             active = conn.execute(
                 "SELECT id FROM crawl_jobs WHERE status IN ('queued', 'running') LIMIT 1"
             ).fetchone()
@@ -881,13 +882,11 @@ class Database:
             ).fetchone()
         return self._crawl_job_row(row) if row is not None else None
 
-    def reap_stale_crawl_jobs(self, max_age_seconds: int = 900) -> int:
-        """Release jobs left behind by a killed/restarted web process.
-
-        Called once at app startup, so it never touches a crawl that is still
-        running inside the current process. ``max_age_seconds`` bounds how
-        long a crashed job can block the single-flight slot.
-        """
+    @staticmethod
+    def _reap_stale_crawl_jobs_conn(
+        conn: sqlite3.Connection, max_age_seconds: int = 900
+    ) -> int:
+        """Release jobs idle long enough to be considered abandoned."""
         from datetime import datetime, timedelta, timezone
 
         cutoff = (
@@ -895,13 +894,21 @@ class Database:
         ).isoformat(timespec="seconds").replace("+00:00", "Z")
         error = f"Interrupted by a server restart or stale worker (idle > {max_age_seconds}s)."
         now = _iso_now()
+        cur = conn.execute(
+            "UPDATE crawl_jobs SET status='failed', phase='error', error=?, finished_at=?, "
+            "updated_at=? WHERE status IN ('queued', 'running') AND updated_at < ?",
+            (error, now, now, cutoff),
+        )
+        return cur.rowcount
+
+    def reap_stale_crawl_jobs(self, max_age_seconds: int = 900) -> int:
+        """Release jobs left behind by a killed/restarted web process.
+
+        Called at app startup and again while claiming a slot. Heartbeats keep
+        a live crawl's ``updated_at`` fresh so it is never reaped mid-run.
+        """
         with self.connect() as conn:
-            cur = conn.execute(
-                "UPDATE crawl_jobs SET status='failed', phase='error', error=?, finished_at=?, "
-                "updated_at=? WHERE status IN ('queued', 'running') AND updated_at < ?",
-                (error, now, now, cutoff),
-            )
-            return cur.rowcount
+            return self._reap_stale_crawl_jobs_conn(conn, max_age_seconds)
 
     def update_crawl_job(self, job_id: str, **fields: Any) -> None:
         if not fields:

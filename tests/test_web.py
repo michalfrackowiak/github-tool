@@ -8,8 +8,9 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from fastapi.testclient import TestClient
 
+from github_tool.github import GitHubError
 from github_tool.models import RateLimit, ReadmeResult, Repo, SearchPage, StarDay
-from github_tool.web.app import create_app
+from github_tool.web.app import create_app, run_crawl_job
 
 
 def _today():
@@ -49,6 +50,11 @@ class ExplodingClient(FakeClient):
 
     def get_readme(self, full_name, etag=None):  # pragma: no cover - must not run
         raise AssertionError("offline local search must not call the GitHub client")
+
+
+class FailingClient(FakeClient):
+    def search_repositories(self, query, **kwargs):
+        raise GitHubError("search unavailable")
 
 
 @pytest.fixture
@@ -387,3 +393,95 @@ def test_app_startup_releases_stale_crawl_job(settings, db):
 
     assert db.active_crawl_job() is None
     assert db.get_crawl_job("stale-web")["status"] == "failed"
+
+
+def test_failed_api_search_does_not_create_history(web, db):
+    client = web(client=FailingClient())
+
+    response = client.get("/search?keyword=rag&source=api")
+
+    assert response.status_code == 200
+    assert "search unavailable" in response.text
+    assert db.list_search_history() == []
+
+
+def test_history_write_failure_does_not_hide_search_results(web, db, make_repo, monkeypatch):
+    db.upsert_repo(make_repo(210, "acme/history-failure", description="rag", language="Python"))
+
+    def fail_history(*args, **kwargs):
+        raise RuntimeError("history storage unavailable")
+
+    monkeypatch.setattr(db, "record_search", fail_history)
+    client = web(client=FakeClient())
+
+    response = client.get("/search?keyword=rag&source=local&language=Python")
+
+    assert response.status_code == 200
+    assert "acme/history-failure" in response.text
+
+
+def test_crawl_form_validates_and_caps_numeric_options(web, db):
+    client = web(client=FakeClient())
+    client.app.state.crawl_runner = lambda job_id, params: None
+
+    assert client.post("/crawl", data={"profile": "not-a-profile"}).status_code == 400
+    assert client.post("/crawl", data={"profile": "ai", "max_slices": "abc"}).status_code == 400
+
+    response = client.post(
+        "/crawl",
+        data={"profile": "ai", "max_slices": "99", "max_pages_per_slice": "99"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    job = db.active_crawl_job()
+    assert job["params"]["max_slices"] == 5
+    assert job["params"]["max_pages_per_slice"] == 3
+
+
+def test_crawl_setup_failure_marks_job_failed(web, db):
+    client = web(client=FakeClient())
+    app = client.app
+
+    def bad_factory(settings, database):
+        raise RuntimeError("client setup failed")
+
+    app.state.crawl_runner = lambda job_id, params: run_crawl_job(
+        app.state.settings, job_id, params, db, client_factory=bad_factory
+    )
+    response = client.post("/crawl", data={"profile": "ai"}, follow_redirects=False)
+
+    assert response.status_code == 303
+    job_id = response.headers["location"].split("job=")[1]
+    status = client.get(f"/crawl/status/{job_id}").json()
+    assert status["status"] == "failed"
+    assert "client setup failed" in status["error"]
+    assert db.active_crawl_job() is None
+
+
+def test_crawl_runner_exception_marks_job_failed(web, db):
+    client = web(client=FakeClient())
+
+    def boom(job_id, params):
+        raise RuntimeError("runner failed")
+
+    client.app.state.crawl_runner = boom
+    response = client.post("/crawl", data={"profile": "ai"}, follow_redirects=False)
+
+    assert response.status_code == 303
+    job_id = response.headers["location"].split("job=")[1]
+    status = client.get(f"/crawl/status/{job_id}").json()
+    assert status["status"] == "failed"
+    assert "runner failed" in status["error"]
+    assert db.active_crawl_job() is None
+
+
+def test_crawl_auto_refresh_is_in_document_head(web):
+    client = web(client=FakeClient())
+    client.app.state.crawl_runner = lambda job_id, params: None
+    response = client.post("/crawl", data={"profile": "ai"}, follow_redirects=False)
+    job_id = response.headers["location"].split("job=")[1]
+
+    page = client.get(f"/crawl?job={job_id}").text
+    head = page.split("</head>", 1)[0]
+    assert 'http-equiv="refresh"' in head
+    assert 'http-equiv="refresh"' not in page.split("</head>", 1)[1]
