@@ -2,6 +2,25 @@
 {% block title %}Crawl status · GitHub-Tool{% endblock %}
 {% block content %}
 <h1>Crawl status</h1>
+{% if job and job.status in ['queued', 'running'] %}
+<meta http-equiv="refresh" content="10">
+{% endif %}
+{% if job %}
+<section class="card">
+  <dl class="stats">
+    <div><dt>Job</dt><dd class="mono">{{ job.id[:12] }}</dd></div>
+    <div><dt>Phase</dt><dd><span class="badge {{ job.status }}">{{ job.phase }}</span></dd></div>
+    <div><dt>Profile</dt><dd>{{ job.profile }}</dd></div>
+    <div><dt>Status</dt><dd><span class="badge {{ job.status }}">{{ job.status }}</span></dd></div>
+    <div><dt>Updated</dt><dd>{{ job.updated_at }}</dd></div>
+  </dl>
+  {% if job.summary %}
+  <p class="muted small">Run {{ job.summary.run_id[:12] }} · {{ job.summary.slices_done }}/{{ job.summary.slices_total }} slices · {{ job.summary.repos_inserted }} new, {{ job.summary.repos_updated }} updated, {{ job.summary.readmes_fetched }} READMEs fetched</p>
+  {% endif %}
+  {% if job.error %}<div class="banner error">{{ job.error }}</div>{% endif %}
+  <p><a class="button small" href="/crawl/status/{{ job.id }}">Job status JSON</a></p>
+</section>
+{% endif %}
 {% if latest %}
 <section class="card">
   <dl class="stats">
@@ -23,11 +42,40 @@
 {% endif %}
 
 <section class="panel">
-  <h2>Run a crawl</h2>
-  <p>The crawler is a CLI job so it can run unattended and be resumed:</p>
-  <pre><code>python -m github_tool crawl --profile ai
-python -m github_tool crawl --profile default --discovery graphql
-python -m github_tool backfill --min-stars 50
-python -m github_tool snapshot</code></pre>
+  <h2>Run a bounded crawl</h2>
+  {% if offline %}
+  <p class="banner error">Crawling is disabled in offline mode; switch offline mode off and restart the server to use this button.</p>
+  {% endif %}
+  {% if active_job %}
+  <p class="banner">One crawl is already queued or running. A new request will be rejected until it finishes.</p>
+  {% endif %}
+  <form method="post" action="/crawl">
+    <label>
+      Profile
+      <select name="profile">
+        {% for profile in profiles %}<option value="{{ profile }}" {% if profile == 'ai' %}selected{% endif %}>{{ profile }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>
+      Slices (max {{ max_slices }})
+      <input type="number" name="max_slices" min="1" max="{{ max_slices }}" value="1">
+    </label>
+    <label>
+      Pages per slice (max {{ max_pages }})
+      <input type="number" name="max_pages_per_slice" min="1" max="{{ max_pages }}" value="1">
+    </label>
+    <label>
+      Discovery
+      <select name="discovery">
+        <option value="rest">REST</option>
+        <option value="graphql">GraphQL</option>
+      </select>
+    </label>
+    <label class="checkbox"><input type="checkbox" name="fetch_readmes" value="1"> Fetch READMEs</label>
+    <label class="checkbox"><input type="checkbox" name="in_readme" value="1"> Match README text</label>
+    <label class="checkbox"><input type="checkbox" name="include_forks" value="1"> Include forks</label>
+    <button type="submit" {% if offline or active_job %}disabled{% endif %}>Start crawl</button>
+  </form>
+  <p class="muted small">Each discovered repo is written to the local database immediately by the same crawler used by the CLI. Keep this UI bound to loopback unless you add authentication.</p>
 </section>
 {% endblock %}

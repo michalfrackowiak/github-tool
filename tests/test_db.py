@@ -238,3 +238,97 @@ def test_export_rows_filters(db):
     rows = db.export_rows(limit=2)
     assert len(rows) == 2
     assert {"id", "full_name", "url", "description", "language", "stars", "forks", "license"} <= set(rows[0])
+
+
+def test_search_history_is_separate_from_named_saves(db):
+    db.save_search("Weekly RAG", {"keyword": "rag"})
+    db.record_search(
+        {"keyword": "rag", "source": "local", "language": ["Python"]},
+        source="local",
+        result_count=3,
+    )
+    db.record_search({"keyword": "llm", "source": "api"}, source="api", result_count=8)
+
+    history = db.list_search_history()
+    assert [entry["source"] for entry in history] == ["api", "local"]
+    assert history[0]["params"] == {"keyword": "llm", "source": "api"}
+    assert history[1]["result_count"] == 3
+    assert [s["name"] for s in db.list_saved_searches()] == ["Weekly RAG"]
+
+    assert db.clear_search_history() == 2
+    assert db.list_search_history() == []
+    assert [s["name"] for s in db.list_saved_searches()] == ["Weekly RAG"]
+
+
+def test_crawl_job_claim_is_single_flight_and_updates(db):
+    params = {"profile": "ai", "max_slices": 1}
+    claimed = db.claim_crawl_job("job-1", "ai", params)
+    assert claimed is not None
+    assert claimed["status"] == "queued"
+    assert db.claim_crawl_job("job-2", "ai", params) is None
+    assert db.active_crawl_job()["id"] == "job-1"
+
+    db.update_crawl_job(
+        "job-1",
+        status="running",
+        phase="crawling",
+        run_id="run-1",
+        summary={"slices_done": 1, "repos_inserted": 2, "repos_updated": 1},
+    )
+    job = db.get_crawl_job("job-1")
+    assert job["status"] == "running"
+    assert job["run_id"] == "run-1"
+    assert job["summary"]["repos_updated"] == 1
+    assert job["params"] == params
+
+    db.update_crawl_job(
+        "job-1",
+        status="completed",
+        phase="done",
+        summary={"slices_done": 1},
+        finished_at="2026-11-28T00:00:00Z",
+    )
+    assert db.active_crawl_job() is None
+    assert db.get_crawl_job("job-1")["status"] == "completed"
+    assert db.claim_crawl_job("job-3", "ai", params) is not None
+
+
+def test_initialize_upgrades_schema_version_and_adds_phase11_tables(tmp_path):
+    from github_tool.db import Database
+
+    path = tmp_path / "old.db"
+    database = Database(path)
+    database.initialize()
+    with database.connect() as conn:
+        conn.execute("DROP TABLE search_history")
+        conn.execute("DROP TABLE crawl_jobs")
+        conn.execute("DELETE FROM schema_meta WHERE key='version'")
+        conn.execute("INSERT INTO schema_meta(key, value) VALUES('version', '1')")
+
+    database.initialize()
+    with database.connect() as conn:
+        tables = {row[0] for row in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()}
+        version = conn.execute(
+            "SELECT value FROM schema_meta WHERE key='version'"
+        ).fetchone()[0]
+    assert {"search_history", "crawl_jobs"} <= tables
+    assert version == "2"
+
+
+def test_stale_crawl_job_is_released_and_run_lookup_is_time_bounded(db):
+    assert db.claim_crawl_job("stale", "ai", {"profile": "ai"}) is not None
+    with db.connect() as conn:
+        conn.execute(
+            "UPDATE crawl_jobs SET updated_at='2020-01-01T00:00:00Z' WHERE id='stale'"
+        )
+    assert db.reap_stale_crawl_jobs() == 1
+    assert db.active_crawl_job() is None
+    stale = db.get_crawl_job("stale")
+    assert stale["status"] == "failed"
+    assert "restart" in stale["error"]
+
+    run_id = db.start_run("ai")
+    assert db.latest_run_since("2020-01-01T00:00:00Z")["id"] == run_id
+    assert db.latest_run_since("2100-01-01T00:00:00Z") is None

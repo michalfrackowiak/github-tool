@@ -17,6 +17,7 @@ from .github import GitHubClient, GitHubError, OfflineError
 from .keywords import KEYWORDS, PROFILES, WINDOW_LABELS, get_keyword, write_keyword_map
 from .links import generate_links
 from .models import utc_today
+from .search_history import normalize_search_params
 
 
 def _window_days(value: str | int) -> int:
@@ -158,8 +159,29 @@ def cmd_search(args: argparse.Namespace) -> int:
         query = f"{query} in:readme"
     if getattr(args, "include_forks", False) and "fork:" not in query:
         query = f"{query} fork:true"
+    search_params = normalize_search_params(
+        {
+            "keyword": keyword.slug,
+            # Local CLI search uses the keyword's display name as its FTS
+            # query when no explicit --query is given; store that effective
+            # text so a replay link produces the same local results.
+            "q": args.query if args.query else (keyword.name if args.local else None),
+            "window": args.window,
+            "source": "local" if args.local else "api",
+            "language": [args.language] if args.language else [],
+            "sort": args.sort,
+            "limit": args.limit,
+            "in_readme": args.in_readme,
+            "forks": args.include_forks,
+            "readme_q": (args.query or keyword.name) if args.in_readme else "",
+        }
+    )
     if args.local:
         rows = db.search_fts(args.query or keyword.name, limit=args.limit)
+        try:
+            db.record_search(search_params, source="local", result_count=len(rows))
+        except Exception:  # history is best-effort; never hide search results
+            pass
         if not rows:
             print("No local matches. Run a crawl first.")
             return 0
@@ -181,6 +203,10 @@ def cmd_search(args: argparse.Namespace) -> int:
             if per_page <= 0:
                 break
         collected = collected[: args.limit]
+        try:
+            db.record_search(search_params, source="api", result_count=len(collected))
+        except Exception:  # history is best-effort; never hide search results
+            pass
         if args.save:
             for repo in collected:
                 db.upsert_repo(repo, keyword=keyword.slug)

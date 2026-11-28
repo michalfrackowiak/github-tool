@@ -14,7 +14,7 @@
 | 4 | Trending discovery hints | GitHub Trending HTML collector fetched 15 Python repos; GraphQL `repo_stats` enriched and stored all 15 |
 | 6 | Extraction | 60 READMEs → 190 commands, 727 hardware rows (154 numeric); 190/190 command lines matched their source line; all 190 commands semantically reviewed |
 | 6 | Manifest hints | Live `extract --manifests` stored 31 dependency hints and 1 Docker image for `Graphify-Labs/graphify` |
-| 7 | Tests / scheduler / logging | 208 pytest tests pass; scheduler snippets render; `httpx` noise suppressed and token redaction active |
+| 7 | Tests / scheduler / logging | 221 pytest tests pass; scheduler snippets render; `httpx` noise suppressed and token redaction active |
 
 ## Phase 1 — links
 
@@ -90,7 +90,7 @@ See [`extraction-validation.md`](extraction-validation.md) for method and limita
 
 ## Phase 7 — hardening
 
-- Pytest suite: **208 tests pass, 0 skipped/xfailed**. Coverage includes recorded-style API fixtures with `httpx.MockTransport` (304 reuse, 429 backoff, `Retry-After`, GraphQL errors, OSS Insight unavailable, Trending HTML parsing), CLI, web UI, planner, crawler resume, trends, extraction, export, scheduler, and logging redaction, plus regressions for every reviewer finding listed in [`review-fixes.md`](review-fixes.md).
+- Pytest suite: **221 tests pass, 0 skipped/xfailed**. Coverage includes recorded-style API fixtures with `httpx.MockTransport` (304 reuse, 429 backoff, `Retry-After`, GraphQL errors, OSS Insight unavailable, Trending HTML parsing), CLI, web UI, planner, crawler resume, trends, extraction, export, scheduler, and logging redaction, plus regressions for every reviewer finding listed in [`review-fixes.md`](review-fixes.md).
 - `github_tool/logging.py` redacts the token and `Authorization: Bearer` values; `httpx`/`httpcore` loggers are quieted at default verbosity.
 - `schedule --format cron|systemd|github-actions` prints copy-pasteable snippets. The Actions variant restores the SQLite database with `actions/cache` and uses a PAT secret.
 - Token hygiene: tokens come only from the environment, are excluded from `Settings.__repr__`, never appear in URLs, and are not printed by the validator.
@@ -112,6 +112,16 @@ See [`extraction-validation.md`](extraction-validation.md) for method and limita
 ## Phase 10 — fork search scope
 
 GitHub excludes forks from repository search unless `fork:true` is added (confirmed against the current GitHub search docs). The pre-existing "Include forks" option only post-filtered results, so it could never surface forks from the API. `--include-forks` on `search`/`crawl` and the web checkbox now add `fork:true` to every generated API query, including planner slices.
+
+## Phase 11 — auto-saved searches and web crawl trigger
+
+- Schema version 2 adds `search_history` and `crawl_jobs`. Named `saved_searches` stay unique and user-controlled; automatic history is separate so replays cannot clobber a manual save. `normalize_search_params()` allowlists and trims the query, keyword, window, source, language(s), sort, limit, min stars, license, archived/fork/README flags, and README query.
+- Both `/search` and CLI `search` append a replayable entry after results are produced; writes are best-effort so a history failure never hides results. CLI local searches store the effective FTS text as `q`, so replay matches the local query. `/saved` renders the last 20 entries with replay and clear-history actions.
+- `POST /crawl` starts a bounded background job (max 5 slices, 3 pages per slice, allowlisted profiles/discovery, no host/proxy/token inputs). Offline requests return 503, invalid options 400, and a second concurrent request 409. `/crawl` auto-refreshes while a job is active and `/crawl/status/{job_id}` exposes phase, run, slice counts, summary, and error.
+- The worker calls the same `Crawler.run()` as the CLI and writes through the app's `Database` path, so `Crawler._store_repo()` upsert(s) each discovered repo immediately (deduped by numeric GitHub ID). `CrawlSummary` now reports inserted, updated, and README counts. A startup reaper fails stale jobs so a restart cannot permanently block the single-flight slot.
+- Verified offline with `TestClient`: history auto-save/replay/clear, offline and busy rejections, job status flow, and a fake worker that writes a repo through the app database before the job completes.
+- A live bounded crawl was also driven through `POST /crawl` against a temporary DB using a one-keyword/one-language smoke profile: HTTP 303 to a job, then status `paused` (expected because only 1 of 2 planned slices was allowed), `pages_fetched=1`, `repos_seen=62`, `repos_inserted=62`, `error=null`, and 62 repos plus one keyword link present in SQLite. The token was read from `gh auth token` inside that process and never printed. The same crawler path was validated at full scale earlier by run `bfa59f1029f54b479728ee9db6c625ef` (`ai` profile, 173/173 slices, 9,538 repos inserted, 9,574 READMEs fetched); no second DB writer was introduced.
+- Suite: **221 tests pass, 0 skipped/xfailed; 87% coverage**.
 
 ## Remaining operator actions
 

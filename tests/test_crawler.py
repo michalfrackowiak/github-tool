@@ -243,6 +243,7 @@ def test_duplicate_repo_across_slices_stored_once_with_both_keywords(db, setting
     assert summary.status == "completed"
     assert summary.repos_seen == 2
     assert summary.repos_inserted == 1
+    assert summary.repos_updated == 1
     assert db.count_repos() == 1
     assert db.keyword_counts() == {"rag": 1, "llm": 1}
 

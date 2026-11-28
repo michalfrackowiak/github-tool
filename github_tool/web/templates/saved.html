@@ -20,6 +20,29 @@
   {% endfor %}
 </ul>
 {% else %}
-<p class="muted">No saved searches yet. Run a search and save it from the results page.</p>
+<p class="muted">No named searches yet. Run a search and save it from the results page.</p>
 {% endif %}
+
+<section class="panel">
+  <h2>Automatic search history</h2>
+  <p class="muted small">Every executed search is replayable here. Result repositories already go into the local index for API searches and crawls.</p>
+  {% if history_links %}
+  <ul class="saved-list">
+    {% for item in history_links %}
+    <li class="card">
+      <div class="muted small">{{ item.created_at }} · {{ item.source }} · {{ item.result_count }} results</div>
+      <div class="mono small">{{ item.replay_url }}</div>
+      <div class="actions">
+        <a class="button small" href="{{ item.replay_url }}">Replay</a>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  <form method="post" action="/saved/history/clear">
+    <button class="danger small" type="submit">Clear history</button>
+  </form>
+  {% else %}
+  <p class="muted">No searches recorded yet.</p>
+  {% endif %}
+</section>
 {% endblock %}

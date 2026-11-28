@@ -73,9 +73,14 @@ star_daily(repo_id, day, stars_gained)      -- from the star-history endpoint
 snapshots(repo_id, day, stars, forks)       -- your own daily counts (fallback)
 repo_keywords(repo_id, keyword)
 crawl_runs(id, profile, started_at, finished_at, cursor, status)
+crawl_jobs(id, run_id, profile, params, status, phase, summary, error, created_at, updated_at)
+saved_searches(name UNIQUE, params)                 -- user-named, unchanged
+search_history(params, source, result_count, created_at) -- automatic, replayable
 -- v2: install_commands(repo_id, cmd, source_line, confidence)
 --     hw_requirements(repo_id, gpu, vram_gb, ram_gb, disk_gb, os, source_line, confidence)
 ```
+
+The UI keeps search *definitions* in `search_history` (never a second copy of result repos) and starts bounded, single-flight crawls in the background through the same `Crawler.run()` as the CLI. It is intended for loopback use unless authentication is added.
 
 ## Risks to Watch
 

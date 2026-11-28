@@ -156,3 +156,49 @@ def test_unknown_keyword_returns_error(capsys):
     captured = capsys.readouterr()
     assert code != 0
     assert "Unknown keyword" in captured.err
+
+
+def test_search_auto_saves_api_and_local_history(tmp_path, monkeypatch, make_repo):
+    from types import SimpleNamespace
+
+    from github_tool import cli
+    from github_tool.db import Database
+
+    class Client:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def search_repositories(self, query, **kwargs):
+            return SimpleNamespace(
+                items=[make_repo(901, "acme/history", description="rag demo")],
+                total_count=1,
+                rate_limit=SimpleNamespace(remaining=None, limit=None),
+            )
+
+    monkeypatch.setattr(cli, "_client", lambda settings, database: Client())
+    db_path = tmp_path / "history.db"
+    db = Database(db_path)
+    db.initialize()
+    db.upsert_repo(make_repo(901, "acme/history", description="rag demo"))
+
+    assert cli.main(
+        [
+            "search", "rag", "--db", str(db_path), "--in-readme",
+            "--include-forks", "--limit", "1",
+        ]
+    ) == 0
+    assert cli.main(["search", "rag", "--db", str(db_path), "--local", "--limit", "1"]) == 0
+
+    entries = db.list_search_history()
+    assert [entry["source"] for entry in entries] == ["local", "api"]
+    api_params = entries[1]["params"]
+    assert api_params["keyword"] == "rag"
+    assert api_params["in_readme"] == "1"
+    assert api_params["forks"] == "1"
+    assert api_params["limit"] == "1"
+    assert entries[1]["result_count"] == 1
+    assert entries[0]["source"] == "local"
+    assert entries[0]["params"]["q"] == "RAG"  # effective local FTS query

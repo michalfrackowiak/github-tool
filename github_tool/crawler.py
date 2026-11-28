@@ -41,6 +41,7 @@ class CrawlSummary:
     pages_fetched: int = 0
     repos_seen: int = 0
     repos_inserted: int = 0
+    repos_updated: int = 0
     readmes_fetched: int = 0
     readmes_not_modified: int = 0
     error: str | None = None
@@ -55,6 +56,7 @@ class CrawlSummary:
             "pages_fetched": self.pages_fetched,
             "repos_seen": self.repos_seen,
             "repos_inserted": self.repos_inserted,
+            "repos_updated": self.repos_updated,
             "readmes_fetched": self.readmes_fetched,
             "readmes_not_modified": self.readmes_not_modified,
             "error": self.error,
@@ -66,6 +68,7 @@ class _Stats:
     pages_fetched: int = 0
     repos_seen: int = 0
     repos_inserted: int = 0
+    repos_updated: int = 0
     readmes_fetched: int = 0
     readmes_not_modified: int = 0
 
@@ -439,6 +442,8 @@ class Crawler:
         stats.repos_seen += 1
         if inserted:
             stats.repos_inserted += 1
+        else:
+            stats.repos_updated += 1
         if fetch_readmes:
             self._maybe_fetch_readme(repo, existing, stats)
 
@@ -474,6 +479,7 @@ class Crawler:
             pages_fetched=stats.pages_fetched,
             repos_seen=stats.repos_seen,
             repos_inserted=stats.repos_inserted,
+            repos_updated=stats.repos_updated,
             readmes_fetched=stats.readmes_fetched,
             readmes_not_modified=stats.readmes_not_modified,
         )

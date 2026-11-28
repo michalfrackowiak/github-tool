@@ -2,7 +2,7 @@
 
 Discover GitHub repositories by keyword and rank them by popularity **and recent star growth**. GitHub does not natively report "stars gained in the last N days" for a keyword, so GitHub-Tool combines instant link-out views with a local index and its own star-history data.
 
-- **Phases 0–10 implemented** — link-out MVP, on-demand API search, resumable crawler, trend engine, web UI/export, extraction, hardening, README-search parity, activity/inflation sanity filters, and fork-inclusive search are in place. Phase 0 evidence is in [`docs/phase0-validation.md`](docs/phase0-validation.md); live end-to-end checks are in [`docs/live-validation.md`](docs/live-validation.md).
+- **Phases 0–11 implemented** — link-out MVP, on-demand API search, resumable crawler, trend engine, web UI/export, extraction, hardening, README-search parity, activity/inflation sanity filters, fork-inclusive search, automatically saved searches, and a bounded web crawl trigger are in place. Phase 0 evidence is in [`docs/phase0-validation.md`](docs/phase0-validation.md); live end-to-end checks are in [`docs/live-validation.md`](docs/live-validation.md).
 - **Known caveats** — OSS Insight's trend ranking is unavailable (since 2026-03-01; GitHub Trending is used as the live hint source instead); authenticated validation currently uses an existing token, and a fine-grained public read-only token is recommended for scheduled use; README extraction is line-verified and semantically reviewed, but an independent human spot-check is still recommended for business-critical use. See [`docs/extraction-validation.md`](docs/extraction-validation.md). Review outcomes are in [`docs/review-fixes.md`](docs/review-fixes.md).
 
 ## Quickstart (Windows / PowerShell)
@@ -52,7 +52,7 @@ The console entry point is `github-tool` (also `python -m github_tool`). All com
 |---|---|---|
 | `github-tool keywords` | Print the keyword map; `--json PATH` writes it (used to regenerate `docs/keyword-map.json`). No token or DB needed. | 1 |
 | `github-tool links` | Print GitHub search / Trending / topic / OSS Insight URLs for a keyword, language, and window. No token or DB needed. | 1 |
-| `github-tool search` | On-demand REST search, sorted by stars/forks/updated, with backoff and ETag cache; `--local` uses FTS, `--in-readme` matches README text, `--include-forks` adds `fork:true`. | 2 |
+| `github-tool search` | On-demand REST search, sorted by stars/forks/updated, with backoff and ETag cache; `--local` uses FTS, `--in-readme` matches README text, `--include-forks` adds `fork:true`. Every search is auto-saved as replayable history; `--save` still opts into storing result repos. | 2 |
 | `github-tool init-db` | Create or upgrade the SQLite schema and FTS5 index. | 3 |
 | `github-tool crawl` | Run a resumable crawl profile (keyword set × languages), slicing queries to stay under 1,000 results; `--in-readme` includes README text and `--include-forks` includes forks. | 3 |
 | `github-tool trends` | Compute 1/7/30/90/365-day star gains and trend sorts from the local index; `--max-fork-ratio` filters inflated star counts and `--active-within N` filters stale repos. | 4 |
@@ -60,7 +60,7 @@ The console entry point is `github-tool` (also `python -m github_tool`). All com
 | `github-tool snapshot` | Take daily star/fork snapshots, batched via GraphQL. | 4 |
 | `github-tool extract` | Extract install commands and hardware requirements (heuristics + optional LLM); `--manifests` adds dependency/base-image hints. | 6 |
 | `github-tool export` | Export CSV or Markdown (repos or trends). | 5 |
-| `github-tool serve` | Start the local FastAPI + Jinja2 web UI; `/export.csv`, `/export.md`, and `/export.json` share the same view filters. | 5 |
+| `github-tool serve` | Start the local FastAPI + Jinja2 web UI; `/saved` shows auto-saved search history, `/crawl` starts a bounded background crawl, and `/export.csv`, `/export.md`, `/export.json` share the same view filters. | 5, 11 |
 | `github-tool schedule` | Print cron/systemd/GitHub Actions snippets. | 7 |
 | `github-tool hints` | Pull discovery hints from GitHub Trending HTML and/or the OSS Insight adapter (`--source all|oss|trending`). | 4 |
 | `github-tool rate-limit` | Print current GitHub rate-limit buckets. | 7 |
@@ -79,14 +79,16 @@ python -m github_tool hints --source trending --language Python
 python -m github_tool serve
 ```
 
-Global flags `--db PATH` and `--offline` work before or after the subcommand. In offline mode the web UI and `search --local` never touch the network.
+Global flags `--db PATH` and `--offline` work before or after the subcommand. In offline mode the web UI and `search --local` never touch the network, and the web crawl button is disabled.
+
+Every executed search (web or CLI, `api` or `local`) appends its normalized query and filters to `search_history`; `/saved` lists the last 20 with one-click replay and a clear-history action. Named saves remain separate and unchanged. The `/crawl` page can start one bounded background crawl at a time (max 5 slices, 3 pages per slice) through the same `Crawler.run()` used by the CLI. Each discovered repo is upserted immediately by the crawler, and job progress/summary/errors are available on `/crawl` and `/crawl/status/{job_id}`. Keep the UI bound to loopback unless you add authentication — the form accepts no host, proxy, or token input.
 
 ## Architecture
 
 Four parts:
 
 1. **Collectors** — REST and GraphQL clients with token auth, retry/backoff, ETag caching, README fetching, and the star-history endpoint. OSS Insight sits behind an optional adapter.
-2. **Store** — SQLite with FTS5. Repos are keyed by the **numeric GitHub repo ID**, not the URL, because repos get renamed. Tables cover repos, star history, daily snapshots, keyword membership, crawl runs/slices, saved searches, and later install/hardware extraction.
+2. **Store** — SQLite with FTS5. Repos are keyed by the **numeric GitHub repo ID**, not the URL, because repos get renamed. Tables cover repos, star history, daily snapshots, keyword membership, crawl runs/slices/jobs, named saved searches plus automatic `search_history`, and install/hardware extraction.
 3. **Trend engine** — computes star gains for today, 7, 30, 90, and 365 days; sorts by absolute gain, relative growth, acceleration, and "new & rising".
 4. **UI** — local FastAPI + Jinja2 views (no external assets or CDN), CSV/Markdown export, and an offline mode that reads only from SQLite.
 
@@ -108,6 +110,7 @@ Data flow: keyword map → sliced search queries → repo metadata + README (ETa
 - Search: 30 req/min authenticated, 10 unauthenticated, max 1,000 results per query.
 - GraphQL: 5,000 points/hr plus secondary limits.
 - Star history: 1–2 core calls per repo for up to one year.
+- Web crawl trigger: bounded to 5 slices and 3 pages per slice, one active job at a time; disabled in offline mode.
 - API-first; no bulk scraping; Trending fetched only a few times a day.
 - GitHub Actions' built-in `GITHUB_TOKEN` is capped at 1,000 req/hr/repo — use a PAT for scheduled runs.
 
@@ -119,7 +122,7 @@ Details: [`docs/rate-limits.md`](docs/rate-limits.md) · validation evidence: [`
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-**208 tests pass, 0 skipped/xfailed.** The suite covers links, keywords, schema/FTS, the HTTP client with recorded fixtures and `MockTransport` (retry/backoff, ETag/304, README, star history, GraphQL, Trending HTML), the query planner, crawler resume/dedupe, trend math and sorts, extraction (heuristics + strict LLM JSON + manifest hints), export, CLI, scheduler, logging redaction, the web UI, and both extraction-audit scripts.
+**221 tests pass, 0 skipped/xfailed (87% coverage).** The suite covers links, keywords, schema/FTS and schema upgrades, the HTTP client with recorded fixtures and `MockTransport` (retry/backoff, ETag/304, README, star history, GraphQL, Trending HTML), the query planner, crawler resume/dedupe, trend math and sorts, extraction (heuristics + strict LLM JSON + manifest hints), export, CLI, scheduler, logging redaction, the web UI (including auto-saved search history and the bounded crawl trigger), and both extraction-audit scripts.
 
 Install the development tooling with `python -m pip install -e ".[dev]"` (or `python -m pip install -r requirements.txt`). GitHub Actions (`.github/workflows/ci.yml`) runs `ruff check .` and the test suite with coverage on pushes and pull requests targeting `main`.
 
@@ -143,7 +146,7 @@ github_tool/
   config.py models.py keywords.py links.py       # settings, domain models, keyword map, link-out views
   db.py github.py planner.py crawler.py          # SQLite/FTS, API client, slicing, resumable crawl
   trends.py extraction.py export.py scheduler.py # trend engine, Phase 6 extraction, export, scheduler snippets
-  cli.py logging.py __main__.py
+  cli.py logging.py search_history.py __main__.py # CLI, token redaction, replayable search definitions
   web/                                            # FastAPI app, Jinja2 templates, CSS
 tests/                                            # pytest suite + recorded API fixtures
 scripts/                                          # validate_phase0.py, audit_extraction.py, make_spotcheck.py

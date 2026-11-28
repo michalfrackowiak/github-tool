@@ -252,3 +252,138 @@ def test_offline_local_search_never_calls_client(web, db, make_repo):
     response = client.get("/search?keyword=rag&source=local&language=Python")
     assert response.status_code == 200
     assert "acme/offline" in response.text
+
+
+def test_web_search_auto_saves_replayable_history(web, db, make_repo):
+    db.upsert_repo(make_repo(208, "acme/history-web", description="rag", language="Python"))
+    client = web(client=FakeClient())
+
+    response = client.get(
+        "/search?keyword=rag&source=local&language=Python&sort=stars&limit=5"
+    )
+    assert response.status_code == 200
+
+    entries = db.list_search_history()
+    assert len(entries) == 1
+    assert entries[0]["source"] == "local"
+    assert entries[0]["result_count"] == 1
+    assert entries[0]["params"]["keyword"] == "rag"
+    assert entries[0]["params"]["language"] == ["Python"]
+    assert entries[0]["params"]["limit"] == "5"
+
+    saved = client.get("/saved")
+    assert "Automatic search history" in saved.text
+    assert "Replay" in saved.text
+    assert "keyword=rag" in saved.text
+
+    cleared = client.post("/saved/history/clear", follow_redirects=False)
+    assert cleared.status_code == 303
+    assert db.list_search_history() == []
+
+
+def test_crawl_button_rejects_offline(web):
+    client = web(offline=True, client=FakeClient())
+    response = client.post("/crawl", data={"profile": "ai"}, follow_redirects=False)
+    assert response.status_code == 503
+    assert "offline" in response.text.lower()
+
+
+def test_crawl_button_is_single_flight(web):
+    client = web(client=FakeClient())
+    client.app.state.crawl_runner = lambda job_id, params: None  # leave job queued
+
+    first = client.post("/crawl", data={"profile": "ai"}, follow_redirects=False)
+    assert first.status_code == 303
+    assert first.headers["location"].startswith("/crawl?job=")
+
+    second = client.post("/crawl", data={"profile": "ai"}, follow_redirects=False)
+    assert second.status_code == 409
+    assert "already running" in second.text.lower()
+
+
+def test_crawl_button_runs_crawler_and_persists_repos(web, db, make_repo):
+    from github_tool.crawler import CrawlSummary
+    from github_tool.web.app import run_crawl_job
+
+    class WorkerClient:
+        def close(self):
+            pass
+
+    class FakeCrawler:
+        def __init__(self, settings, database, client):
+            self.database = database
+
+        def run(self, **kwargs):
+            assert kwargs["profile"] == "ai"
+            assert kwargs["max_slices"] == 1
+            assert kwargs["max_pages_per_slice"] == 2
+            self.database.upsert_repo(make_repo(209, "acme/web-crawled"), keyword="rag")
+            return CrawlSummary(
+                run_id="web-run-id",
+                profile="ai",
+                status="completed",
+                slices_total=1,
+                slices_done=1,
+                repos_seen=1,
+                repos_inserted=1,
+            )
+
+    client = web(client=FakeClient())
+
+    def runner(job_id, params):
+        run_crawl_job(
+            client.app.state.settings,
+            job_id,
+            params,
+            db,
+            crawler_factory=FakeCrawler,
+            client_factory=lambda settings, database: WorkerClient(),
+        )
+
+    client.app.state.crawl_runner = runner
+    response = client.post(
+        "/crawl",
+        data={"profile": "ai", "max_slices": "1", "max_pages_per_slice": "2"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    job_id = response.headers["location"].split("job=")[1]
+
+    status = client.get(f"/crawl/status/{job_id}")
+    assert status.status_code == 200
+    payload = status.json()
+    assert payload["status"] == "completed"
+    assert payload["run_id"] == "web-run-id"
+    assert payload["summary"]["repos_inserted"] == 1
+    assert db.get_repo(209) is not None
+
+    page = client.get(f"/crawl?job={job_id}")
+    assert "web-run" in page.text
+    assert "1 new" in page.text
+
+
+def test_crawl_status_tracks_run_started_after_job(web, db):
+    client = web(client=FakeClient())
+    client.app.state.crawl_runner = lambda job_id, params: None
+    response = client.post("/crawl", data={"profile": "ai"}, follow_redirects=False)
+    job_id = response.headers["location"].split("job=")[1]
+
+    run_id = db.start_run("ai")
+    status = client.get(f"/crawl/status/{job_id}")
+    assert status.status_code == 200
+    assert status.json()["run"]["id"] == run_id
+
+
+def test_app_startup_releases_stale_crawl_job(settings, db):
+    from github_tool.web.app import create_app
+
+    db.claim_crawl_job("stale-web", "ai", {"profile": "ai"})
+    with db.connect() as conn:
+        conn.execute(
+            "UPDATE crawl_jobs SET updated_at='2020-01-01T00:00:00Z' WHERE id='stale-web'"
+        )
+
+    create_app(settings, db, client=FakeClient())
+
+    assert db.active_crawl_job() is None
+    assert db.get_crawl_job("stale-web")["status"] == "failed"
